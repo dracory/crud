@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gouniverse/api"
-	"github.com/gouniverse/cdn"
-	"github.com/gouniverse/hb"
+	"github.com/dracory/api"
+	"github.com/dracory/cdn"
+	"github.com/dracory/hb"
 	"github.com/gouniverse/icons"
 	"github.com/gouniverse/utils"
 	"github.com/samber/lo"

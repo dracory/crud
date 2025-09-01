@@ -1,12 +1,13 @@
 module github.com/gouniverse/crud
 
-go 1.23
+go 1.24.5
 
 require (
+	github.com/dracory/api v1.7.0
+	github.com/dracory/bs v0.15.0
+	github.com/dracory/cdn v1.8.0
+	github.com/dracory/hb v1.88.0
 	github.com/go-sql-driver/mysql v1.8.1
-	github.com/gouniverse/api v1.6.0
-	github.com/gouniverse/bs v0.13.0
-	github.com/gouniverse/cdn v1.5.0
 	github.com/gouniverse/hb v1.78.0
 	github.com/gouniverse/icons v1.3.1
 	github.com/gouniverse/utils v1.45.0
@@ -24,6 +25,8 @@ require (
 	github.com/gobuffalo/packr v1.30.1 // indirect
 	github.com/golang-module/carbon v1.7.3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/gouniverse/api v1.6.0 // indirect
+	github.com/gouniverse/cdn v1.5.0 // indirect
 	github.com/gouniverse/crypto v0.2.0 // indirect
 	github.com/gouniverse/dataobject v0.3.0 // indirect
 	github.com/gouniverse/envenc v0.7.0 // indirect
@@ -39,13 +42,14 @@ require (
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
+	github.com/spf13/cast v1.3.0 // indirect
+	golang.org/x/crypto v0.39.0 // indirect
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c // indirect
-	golang.org/x/mod v0.21.0 // indirect
-	golang.org/x/net v0.33.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/term v0.27.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/mod v0.25.0 // indirect
+	golang.org/x/net v0.41.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/term v0.32.0 // indirect
+	golang.org/x/text v0.26.0 // indirect
 	modernc.org/gc/v3 v3.0.0-20241004144649-1aea3fae8852 // indirect
 	modernc.org/libc v1.61.0 // indirect
 	modernc.org/mathutil v1.6.0 // indirect

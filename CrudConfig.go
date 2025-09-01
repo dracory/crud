@@ -3,7 +3,7 @@ package crud
 import (
 	"net/http"
 
-	"github.com/gouniverse/hb"
+	"github.com/dracory/hb"
 )
 
 type CrudConfig struct {
