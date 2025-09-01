@@ -1,8 +1,8 @@
-# CRUD <a href="https://gitpod.io/#https://github.com/gouniverse/crud" style="float:right;"><img src="https://gitpod.io/button/open-in-gitpod.svg" alt="Open in Gitpod" loading="lazy"></a>
+# CRUD <a href="https://gitpod.io/#https://github.com/dracory/crud" style="float:right;"><img src="https://gitpod.io/button/open-in-gitpod.svg" alt="Open in Gitpod" loading="lazy"></a>
 
-![tests](https://github.com/gouniverse/crud/workflows/tests/badge.svg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/gouniverse/crud)](https://goreportcard.com/report/github.com/gouniverse/crud)
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/gouniverse/crud)](https://pkg.go.dev/github.com/gouniverse/crud)
+![tests](https://github.com/dracory/crud/workflows/tests/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/dracory/crud)](https://goreportcard.com/report/github.com/dracory/crud)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/dracory/crud)](https://pkg.go.dev/github.com/dracory/crud)
 
 A "plug-and-play" CRUD interface for GoLang that does its job and stays out of your way.
 

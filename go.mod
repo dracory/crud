@@ -1,4 +1,4 @@
-module github.com/gouniverse/crud
+module github.com/dracory/crud
 
 go 1.24.5
 
