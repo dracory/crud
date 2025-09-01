@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dracory/crud/v2"
+	"github.com/dracory/crud"
 	"github.com/dracory/hb"
 	"github.com/gouniverse/utils"
 
