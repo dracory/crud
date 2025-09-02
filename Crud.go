@@ -2,6 +2,7 @@ package crud
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -9,8 +10,8 @@ import (
 	"github.com/dracory/bs"
 	"github.com/dracory/cdn"
 	"github.com/dracory/hb"
-	"github.com/gouniverse/icons"
-	"github.com/gouniverse/utils"
+	"github.com/dracory/req"
+	"github.com/dracory/str"
 	"github.com/samber/lo"
 )
 
@@ -35,7 +36,7 @@ type Crud struct {
 }
 
 func (crud Crud) Handler(w http.ResponseWriter, r *http.Request) {
-	path := utils.Req(r, "path", "home")
+	path := req.GetStringTrimmed(r, "path")
 
 	if path == "" {
 		path = "home"
@@ -73,7 +74,7 @@ func (crud *Crud) pageEntityCreateAjax(w http.ResponseWriter, r *http.Request) {
 
 	posts := map[string]string{}
 	for _, name := range names {
-		posts[name] = utils.Req(r, name, "")
+		posts[name] = req.GetStringTrimmed(r, name)
 	}
 
 	// Check required fields
@@ -119,7 +120,7 @@ func (crud *Crud) pageEntityManager(w http.ResponseWriter, r *http.Request) {
 	buttonCreate := hb.Button().
 		Class("btn btn-success float-end").
 		Attr("v-on:click", "showEntityCreateModal").
-		AddChild(icons.Icon("bi-plus-circle", 16, 16, "white").Style("margin-top:-4px;margin-right:8px;")).
+		AddChild(hb.I().Class("bi-plus-circle").Style("margin-top:-4px;margin-right:8px;")).
 		HTML("New " + crud.entityNameSingular)
 
 	heading := hb.Heading1().
@@ -156,16 +157,14 @@ func (crud *Crud) pageEntityManager(w http.ResponseWriter, r *http.Request) {
 					Children(lo.Map(rows, func(row Row, _ int) hb.TagInterface {
 						buttonView := hb.Hyperlink().
 							Class("btn btn-sm btn-outline-info").
-							Child(icons.Icon("bi-eye", 18, 18, "#333").
-								Style("margin-top:-4px;")).
+							Child(hb.I().Class("bi-eye").Style("margin-top:-4px;")).
 							Attr("title", "Show").
 							Href(crud.UrlEntityRead() + "&entity_id=" + row.ID).
 							Style("margin-right:5px")
 
 						buttonEdit := hb.Hyperlink().
 							Class("btn btn-sm btn-outline-warning").
-							Child(icons.Icon("bi-pencil-square", 18, 18, "#333").
-								Style("margin-top:-4px;")).
+							Child(hb.I().Class("bi-pencil-square").Style("margin-top:-4px;")).
 							Attr("title", "Edit").
 							Attr("type", "button").
 							Href(crud.UrlEntityUpdate() + "&entity_id=" + row.ID).
@@ -173,8 +172,7 @@ func (crud *Crud) pageEntityManager(w http.ResponseWriter, r *http.Request) {
 
 						buttonTrash := hb.Button().
 							Class("btn btn-sm btn-outline-danger").
-							Child(icons.Icon("bi-trash", 18, 18, "#333").
-								Style("margin-top:-4px;")).
+							Child(hb.I().Class("bi-trash").Style("margin-top:-4px;")).
 							Attr("title", "Trash").
 							Attr("type", "button").
 							Attr("v-on:click", "showEntityTrashModal('"+row.ID+"')")
@@ -212,21 +210,21 @@ func (crud *Crud) pageEntityManager(w http.ResponseWriter, r *http.Request) {
 
 	content := container.ToHTML()
 
-	urlEntityCreateAjax, _ := utils.ToJSON(crud.UrlEntityCreateAjax())
-	urlEntityTrashAjax, _ := utils.ToJSON(crud.UrlEntityTrashAjax())
-	urlEntityUpdate, _ := utils.ToJSON(crud.UrlEntityUpdate())
+	urlEntityCreateAjax, _ := json.Marshal(crud.UrlEntityCreateAjax())
+	urlEntityTrashAjax, _ := json.Marshal(crud.UrlEntityTrashAjax())
+	urlEntityUpdate, _ := json.Marshal(crud.UrlEntityUpdate())
 
 	customAttrValues := map[string]string{}
 	lo.ForEach(crud.createFields, func(field FormField, index int) {
 		customAttrValues[field.Name] = field.Value
 	})
-	jsonCustomValues, _ := utils.ToJSON(customAttrValues)
+	jsonCustomValues, _ := json.Marshal(customAttrValues)
 
 	inlineScript := `
-const entityCreateUrl = ` + urlEntityCreateAjax + `;
-const entityUpdateUrl = ` + urlEntityUpdate + `;
-const entityTrashUrl = ` + urlEntityTrashAjax + `;
-const customValues = ` + jsonCustomValues + `;
+const entityCreateUrl = ` + string(urlEntityCreateAjax) + `;
+const entityUpdateUrl = ` + string(urlEntityUpdate) + `;
+const entityTrashUrl = ` + string(urlEntityTrashAjax) + `;
+const customValues = ` + string(jsonCustomValues) + `;
 const EntityManager = {
 	data() {
 		return {
@@ -310,7 +308,7 @@ Vue.createApp(EntityManager).mount('#entity-manager')
 }
 
 func (crud *Crud) pageEntityRead(w http.ResponseWriter, r *http.Request) {
-	entityID := utils.Req(r, "entity_id", "")
+	entityID := req.GetStringTrimmed(r, "entity_id")
 	if entityID == "" {
 		api.Respond(w, r, api.Error("Entity ID is required"))
 		return
@@ -338,13 +336,13 @@ func (crud *Crud) pageEntityRead(w http.ResponseWriter, r *http.Request) {
 
 	buttonEdit := hb.Hyperlink().
 		Class("btn btn-primary ml-2 float-end").
-		Child(icons.Icon("bi-pencil-square", 16, 16, "white").Style("margin-top:-4px;margin-right:8px;")).
+		Child(hb.I().Class("bi-pencil-square").Style("margin-top:-4px;margin-right:8px;")).
 		HTML("Edit").
 		Href(crud.UrlEntityUpdate() + "&entity_id=" + entityID)
 
 	buttonCancel := hb.Hyperlink().
 		Class("btn btn-secondary ml-2 float-end").
-		Child(icons.Icon("bi-chevron-left", 16, 16, "white").Style("margin-top:-4px;margin-right:8px;")).
+		Child(hb.I().Class("bi-chevron-left").Style("margin-top:-4px;margin-right:8px;")).
 		HTML("Back").
 		Href(crud.UrlEntityManager())
 
@@ -424,7 +422,7 @@ func (crud *Crud) pageEntityRead(w http.ResponseWriter, r *http.Request) {
 }
 
 func (crud *Crud) pageEntityUpdate(w http.ResponseWriter, r *http.Request) {
-	entityID := utils.Req(r, "entity_id", "")
+	entityID := req.GetStringTrimmed(r, "entity_id")
 	if entityID == "" {
 		api.Respond(w, r, api.Error("Entity ID is required"))
 		return
@@ -446,11 +444,11 @@ func (crud *Crud) pageEntityUpdate(w http.ResponseWriter, r *http.Request) {
 	})
 
 	buttonSave := hb.Button().Class("btn btn-success float-end").Attr("v-on:click", "entitySave(true)").
-		AddChild(icons.Icon("bi-check-all", 16, 16, "white").Style("margin-top:-4px;margin-right:8px;")).
+		AddChild(hb.I().Class("bi-check-all").Style("margin-top:-4px;margin-right:8px;")).
 		HTML("Save")
 	buttonApply := hb.Button().Class("btn btn-success float-end").Attr("v-on:click", "entitySave").
 		Style("margin-right:10px;").
-		AddChild(icons.Icon("bi-check", 16, 16, "white").Style("margin-top:-4px;margin-right:8px;")).
+		AddChild(hb.I().Class("bi-check").Style("margin-top:-4px;margin-right:8px;")).
 		HTML("Apply")
 	heading := hb.Heading1().Text("Edit " + crud.entityNameSingular).
 		AddChild(buttonSave).
@@ -472,18 +470,18 @@ func (crud *Crud) pageEntityUpdate(w http.ResponseWriter, r *http.Request) {
 
 	content := container.ToHTML()
 
-	jsonCustomValues, _ := utils.ToJSON(customAttrValues)
+	jsonCustomValues, _ := json.Marshal(customAttrValues)
 
-	urlHome, _ := utils.ToJSON(crud.endpoint)
-	urlEntityTrashAjax, _ := utils.ToJSON(crud.UrlEntityTrashAjax())
-	urlEntityUpdateAjax, _ := utils.ToJSON(crud.UrlEntityUpdateAjax())
+	urlHome, _ := json.Marshal(crud.endpoint)
+	urlEntityTrashAjax, _ := json.Marshal(crud.UrlEntityTrashAjax())
+	urlEntityUpdateAjax, _ := json.Marshal(crud.UrlEntityUpdateAjax())
 
 	inlineScript := `
-	const entityManagerUrl = ` + urlHome + `;
-	const entityUpdateUrl = ` + urlEntityUpdateAjax + `;
-	const entityTrashUrl = ` + urlEntityTrashAjax + `;
+	const entityManagerUrl = ` + string(urlHome) + `;
+	const entityUpdateUrl = ` + string(urlEntityUpdateAjax) + `;
+	const entityTrashUrl = ` + string(urlEntityTrashAjax) + `;
 	const entityId = "` + entityID + `";
-	const customValues = ` + jsonCustomValues + `;
+	const customValues = ` + string(jsonCustomValues) + `;
 	const EntityUpdate = {
 		data() {
 			return {
@@ -572,7 +570,7 @@ func (crud *Crud) pageEntityUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (crud *Crud) pageEntityUpdateAjax(w http.ResponseWriter, r *http.Request) {
-	entityID := strings.Trim(utils.Req(r, "entity_id", ""), " ")
+	entityID := strings.Trim(req.GetStringTrimmed(r, "entity_id"), " ")
 
 	if entityID == "" {
 		api.Respond(w, r, api.Error("Entity ID is required"))
@@ -582,7 +580,7 @@ func (crud *Crud) pageEntityUpdateAjax(w http.ResponseWriter, r *http.Request) {
 	names := crud.listUpdateNames()
 	posts := map[string]string{}
 	for _, name := range names {
-		posts[name] = utils.Req(r, name, "")
+		posts[name] = req.GetStringTrimmed(r, name)
 	}
 
 	// Check required fields
@@ -613,7 +611,7 @@ func (crud *Crud) pageEntityUpdateAjax(w http.ResponseWriter, r *http.Request) {
 }
 
 func (crud *Crud) pageEntityTrashAjax(w http.ResponseWriter, r *http.Request) {
-	entityID := strings.Trim(utils.Req(r, "entity_id", ""), " ")
+	entityID := strings.Trim(req.GetStringTrimmed(r, "entity_id"), " ")
 
 	if entityID == "" {
 		api.Respond(w, r, api.Error("Entity ID is required"))
@@ -831,7 +829,7 @@ func (crud *Crud) form(fields []FormField) []hb.TagInterface {
 	for _, field := range fields {
 		fieldID := field.ID
 		if fieldID == "" {
-			fieldID = "id_" + utils.StrRandomFromGamma(32, "abcdefghijklmnopqrstuvwxyz1234567890")
+			fieldID = "id_" + str.RandomFromGamma(32, "abcdefghijklmnopqrstuvwxyz1234567890")
 		}
 		fieldName := field.Name
 		fieldValue := field.Value

@@ -6,7 +6,7 @@ import (
 	"github.com/dracory/bs"
 	"github.com/dracory/form"
 	"github.com/dracory/hb"
-	"github.com/gouniverse/utils"
+	"github.com/dracory/req"
 	"github.com/samber/lo"
 )
 
@@ -29,7 +29,7 @@ func (controller *entityCreateController) modalSave(w http.ResponseWriter, r *ht
 
 	posts := map[string]string{}
 	for _, name := range names {
-		posts[name] = utils.Req(r, name, "")
+		posts[name] = req.GetString(r, name)
 	}
 
 	// Check required fields

@@ -2,11 +2,10 @@ package crud
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/dracory/api"
 	"github.com/dracory/hb"
-	"github.com/gouniverse/utils"
+	"github.com/dracory/req"
 )
 
 type entityTrashController struct {
@@ -20,7 +19,7 @@ func (crud *Crud) newEntityTrashController() *entityTrashController {
 }
 
 func (controller *entityTrashController) pageEntityTrashAjax(w http.ResponseWriter, r *http.Request) {
-	entityID := strings.Trim(utils.Req(r, "entity_id", ""), " ")
+	entityID := req.GetStringTrimmed(r, "entity_id")
 
 	if entityID == "" {
 		api.Respond(w, r, api.Error("Entity ID is required"))

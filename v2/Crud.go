@@ -9,7 +9,8 @@ import (
 	"github.com/dracory/cdn"
 	"github.com/dracory/form"
 	"github.com/dracory/hb"
-	"github.com/gouniverse/utils"
+	"github.com/dracory/req"
+	"github.com/dracory/str"
 	"github.com/samber/lo"
 )
 
@@ -34,7 +35,7 @@ type Crud struct {
 }
 
 func (crud Crud) Handler(w http.ResponseWriter, r *http.Request) {
-	path := utils.Req(r, "path", pathHome)
+	path := req.GetStringTrimmed(r, "path")
 
 	if path == "" {
 		path = pathHome
@@ -257,7 +258,7 @@ func (crud *Crud) form(fields []form.FieldInterface) []hb.TagInterface {
 	for _, field := range fields {
 		fieldID := field.GetID()
 		if fieldID == "" {
-			fieldID = "id_" + utils.StrRandomFromGamma(32, "abcdefghijklmnopqrstuvwxyz1234567890")
+			fieldID = "id_" + str.RandomFromGamma(32, "abcdefghijklmnopqrstuvwxyz1234567890")
 		}
 		fieldName := field.GetName()
 		fieldValue := field.GetValue()

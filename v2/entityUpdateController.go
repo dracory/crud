@@ -1,14 +1,13 @@
 package crud
 
 import (
+	"encoding/json"
 	"net/http"
-	"strings"
 
 	"github.com/dracory/api"
 	"github.com/dracory/cdn"
 	"github.com/dracory/hb"
-	"github.com/gouniverse/icons"
-	"github.com/gouniverse/utils"
+	"github.com/dracory/req"
 	"github.com/samber/lo"
 )
 
@@ -23,7 +22,7 @@ func (crud *Crud) newEntityUpdateController() *entityUpdateController {
 }
 
 func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Request) {
-	entityID := utils.Req(r, "entity_id", "")
+	entityID := req.GetStringTrimmed(r, "entity_id")
 	if entityID == "" {
 		api.Respond(w, r, api.Error("Entity ID is required"))
 		return
@@ -45,11 +44,11 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 	})
 
 	buttonSave := hb.Button().Class("btn btn-success float-end").Attr("v-on:click", "entitySave(true)").
-		AddChild(icons.Icon("bi-check-all", 16, 16, "white").Style("margin-top:-4px;margin-right:8px;")).
+		AddChild(hb.I().Class("bi-check-all").Style("margin-top:-4px;margin-right:8px;")).
 		HTML("Save")
 	buttonApply := hb.Button().Class("btn btn-success float-end").Attr("v-on:click", "entitySave").
 		Style("margin-right:10px;").
-		AddChild(icons.Icon("bi-check", 16, 16, "white").Style("margin-top:-4px;margin-right:8px;")).
+		AddChild(hb.I().Class("bi-check").Style("margin-top:-4px;margin-right:8px;")).
 		HTML("Apply")
 	heading := hb.Heading1().Text("Edit " + controller.crud.entityNameSingular).
 		AddChild(buttonSave).
@@ -71,18 +70,18 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 
 	content := container.ToHTML()
 
-	jsonCustomValues, _ := utils.ToJSON(customAttrValues)
+	jsonCustomValues, _ := json.Marshal(customAttrValues)
 
-	urlHome, _ := utils.ToJSON(controller.crud.endpoint)
-	urlEntityTrashAjax, _ := utils.ToJSON(controller.crud.UrlEntityTrashAjax())
-	urlEntityUpdateAjax, _ := utils.ToJSON(controller.crud.UrlEntityUpdateAjax())
+	urlHome, _ := json.Marshal(controller.crud.endpoint)
+	urlEntityTrashAjax, _ := json.Marshal(controller.crud.UrlEntityTrashAjax())
+	urlEntityUpdateAjax, _ := json.Marshal(controller.crud.UrlEntityUpdateAjax())
 
 	inlineScript := `
-	const entityManagerUrl = ` + urlHome + `;
-	const entityUpdateUrl = ` + urlEntityUpdateAjax + `;
-	const entityTrashUrl = ` + urlEntityTrashAjax + `;
+	const entityManagerUrl = ` + string(urlHome) + `;
+	const entityUpdateUrl = ` + string(urlEntityUpdateAjax) + `;
+	const entityTrashUrl = ` + string(urlEntityTrashAjax) + `;
 	const entityId = "` + entityID + `";
-	const customValues = ` + jsonCustomValues + `;
+	const customValues = ` + string(jsonCustomValues) + `;
 	const EntityUpdate = {
 		data() {
 			return {
@@ -171,7 +170,7 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 }
 
 func (controller *entityUpdateController) pageSave(w http.ResponseWriter, r *http.Request) {
-	entityID := strings.Trim(utils.Req(r, "entity_id", ""), " ")
+	entityID := req.GetStringTrimmed(r, "entity_id")
 
 	if entityID == "" {
 		api.Respond(w, r, api.Error("Entity ID is required"))
@@ -181,7 +180,7 @@ func (controller *entityUpdateController) pageSave(w http.ResponseWriter, r *htt
 	names := controller.crud.listUpdateNames()
 	posts := map[string]string{}
 	for _, name := range names {
-		posts[name] = utils.Req(r, name, "")
+		posts[name] = req.GetStringTrimmed(r, name)
 	}
 
 	// Check required fields

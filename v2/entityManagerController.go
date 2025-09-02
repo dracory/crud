@@ -1,14 +1,13 @@
 package crud
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 
 	"github.com/dracory/cdn"
 	"github.com/dracory/form"
 	"github.com/dracory/hb"
-	"github.com/gouniverse/icons"
-	"github.com/gouniverse/utils"
 	"github.com/samber/lo"
 )
 
@@ -44,7 +43,7 @@ func (controller *entityManagerController) page(w http.ResponseWriter, r *http.R
 	buttonCreate := hb.Button().
 		Class("btn btn-success float-end").
 		// Attr("v-on:click", "showEntityCreateModal").
-		AddChild(icons.Icon("bi-plus-circle", 16, 16, "white").Style("margin-top:-4px;margin-right:8px;")).
+		AddChild(hb.I().Class("bi-plus-circle").Style("margin-top:-4px;margin-right:8px;")).
 		HTML("New " + controller.crud.entityNameSingular).
 		HxGet(controller.crud.UrlEntityCreateModal()).
 		HxTarget("body").
@@ -84,16 +83,14 @@ func (controller *entityManagerController) page(w http.ResponseWriter, r *http.R
 					Children(lo.Map(rows, func(row Row, _ int) hb.TagInterface {
 						buttonView := hb.Hyperlink().
 							Class("btn btn-sm btn-outline-info").
-							Child(icons.Icon("bi-eye", 18, 18, "#333").
-								Style("margin-top:-4px;")).
+							Child(hb.I().Class("bi-eye").Style("margin-top:-4px;")).
 							Attr("title", "Show").
 							Href(controller.crud.UrlEntityRead() + "&entity_id=" + row.ID).
 							Style("margin-right:5px")
 
 						buttonEdit := hb.Hyperlink().
 							Class("btn btn-sm btn-outline-warning").
-							Child(icons.Icon("bi-pencil-square", 18, 18, "#333").
-								Style("margin-top:-4px;")).
+							Child(hb.I().Class("bi-pencil-square").Style("margin-top:-4px;")).
 							Attr("title", "Edit").
 							Attr("type", "button").
 							Href(controller.crud.UrlEntityUpdate() + "&entity_id=" + row.ID).
@@ -101,8 +98,7 @@ func (controller *entityManagerController) page(w http.ResponseWriter, r *http.R
 
 						buttonTrash := hb.Button().
 							Class("btn btn-sm btn-outline-danger").
-							Child(icons.Icon("bi-trash", 18, 18, "#333").
-								Style("margin-top:-4px;")).
+							Child(hb.I().Class("bi-trash").Style("margin-top:-4px;")).
 							Attr("title", "Trash").
 							Attr("type", "button").
 							Attr("v-on:click", "showEntityTrashModal('"+row.ID+"')")
@@ -140,21 +136,21 @@ func (controller *entityManagerController) page(w http.ResponseWriter, r *http.R
 
 	content := container.ToHTML()
 
-	urlEntityCreateAjax, _ := utils.ToJSON(controller.crud.UrlEntityCreateAjax())
-	urlEntityTrashAjax, _ := utils.ToJSON(controller.crud.UrlEntityTrashAjax())
-	urlEntityUpdate, _ := utils.ToJSON(controller.crud.UrlEntityUpdate())
+	urlEntityCreateAjax, _ := json.Marshal(controller.crud.UrlEntityCreateAjax())
+	urlEntityTrashAjax, _ := json.Marshal(controller.crud.UrlEntityTrashAjax())
+	urlEntityUpdate, _ := json.Marshal(controller.crud.UrlEntityUpdate())
 
 	customAttrValues := map[string]string{}
 	lo.ForEach(controller.crud.createFields, func(field form.FieldInterface, index int) {
 		customAttrValues[field.GetName()] = field.GetValue()
 	})
-	jsonCustomValues, _ := utils.ToJSON(customAttrValues)
+	jsonCustomValues, _ := json.Marshal(customAttrValues)
 
 	inlineScript := `
-const entityCreateUrl = ` + urlEntityCreateAjax + `;
-const entityUpdateUrl = ` + urlEntityUpdate + `;
-const entityTrashUrl = ` + urlEntityTrashAjax + `;
-const customValues = ` + jsonCustomValues + `;
+const entityCreateUrl = ` + string(urlEntityCreateAjax) + `;
+const entityUpdateUrl = ` + string(urlEntityUpdate) + `;
+const entityTrashUrl = ` + string(urlEntityTrashAjax) + `;
+const customValues = ` + string(jsonCustomValues) + `;
 const EntityManager = {
 	data() {
 		return {

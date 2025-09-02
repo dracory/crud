@@ -6,8 +6,7 @@ import (
 
 	"github.com/dracory/api"
 	"github.com/dracory/hb"
-	"github.com/gouniverse/icons"
-	"github.com/gouniverse/utils"
+	"github.com/dracory/req"
 	"github.com/samber/lo"
 )
 
@@ -22,7 +21,7 @@ func (crud *Crud) newEntityReadController() *entityReadController {
 }
 
 func (controller *entityReadController) page(w http.ResponseWriter, r *http.Request) {
-	entityID := utils.Req(r, "entity_id", "")
+	entityID := req.GetStringTrimmed(r, "entity_id")
 	if entityID == "" {
 		api.Respond(w, r, api.Error("Entity ID is required"))
 		return
@@ -50,13 +49,13 @@ func (controller *entityReadController) page(w http.ResponseWriter, r *http.Requ
 
 	buttonEdit := hb.Hyperlink().
 		Class("btn btn-primary ml-2 float-end").
-		Child(icons.Icon("bi-pencil-square", 16, 16, "white").Style("margin-top:-4px;margin-right:8px;")).
+		Child(hb.I().Class("bi-pencil-square").Style("margin-top:-4px;margin-right:8px;")).
 		HTML("Edit").
 		Href(controller.crud.UrlEntityUpdate() + "&entity_id=" + entityID)
 
 	buttonCancel := hb.Hyperlink().
 		Class("btn btn-secondary ml-2 float-end").
-		Child(icons.Icon("bi-chevron-left", 16, 16, "white").Style("margin-top:-4px;margin-right:8px;")).
+		Child(hb.I().Class("bi-chevron-left").Style("margin-top:-4px;margin-right:8px;")).
 		HTML("Back").
 		Href(controller.crud.UrlEntityManager())
 
