@@ -258,7 +258,11 @@ func (crud *Crud) form(fields []form.FieldInterface) []hb.TagInterface {
 	for _, field := range fields {
 		fieldID := field.GetID()
 		if fieldID == "" {
-			fieldID = "id_" + str.RandomFromGamma(32, "abcdefghijklmnopqrstuvwxyz1234567890")
+			id, err := str.RandomFromGamma(32, "abcdefghijklmnopqrstuvwxyz1234567890")
+			if err != nil {
+				id = "id_" + str.Random(32)
+			}
+			fieldID = id
 		}
 		fieldName := field.GetName()
 		fieldValue := field.GetValue()
