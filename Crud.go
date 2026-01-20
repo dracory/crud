@@ -3,8 +3,10 @@ package crud
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/dracory/api"
 	"github.com/dracory/bs"
@@ -829,7 +831,12 @@ func (crud *Crud) form(fields []FormField) []hb.TagInterface {
 	for _, field := range fields {
 		fieldID := field.ID
 		if fieldID == "" {
-			fieldID = "id_" + str.RandomFromGamma(32, "abcdefghijklmnopqrstuvwxyz1234567890")
+			randomID, err := str.RandomFromGamma(32, "abcdefghijklmnopqrstuvwxyz1234567890")
+			if err != nil {
+				fieldID = "id_" + fmt.Sprintf("%d", time.Now().UnixNano())
+			} else {
+				fieldID = "id_" + randomID
+			}
 		}
 		fieldName := field.Name
 		fieldValue := field.Value
