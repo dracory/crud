@@ -1,0 +1,48 @@
+# This workflow will build and test the Go modules
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  test-v1:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
+
+    - name: Build v1
+      run: go build -v ./...
+      working-directory: v1
+
+    - name: Test v1
+      run: go test -v ./...
+      working-directory: v1
+
+  test-v2:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
+
+    - name: Build v2
+      run: go build -v ./...
+      working-directory: v2
+
+    - name: Test v2
+      run: go test -v ./...
+      working-directory: v2
