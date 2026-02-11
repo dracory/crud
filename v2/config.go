@@ -22,6 +22,8 @@ type Config struct {
 	FuncTrash           func(r *http.Request, entityID string) error
 	FuncUpdate          func(r *http.Request, entityID string, data map[string]string) error
 	HomeURL             string
+	CreateRedirectURL   string
+	UpdateRedirectURL   string
 	UpdateFields        []form.FieldInterface
 	FuncReadExtras      func(r *http.Request, entityID string) []hb.TagInterface
 }

@@ -250,3 +250,47 @@ func TestUpdate_PageSave_Success(t *testing.T) {
 		t.Fatalf("expected title 'Updated Product', got: %s", savedData["title"])
 	}
 }
+
+func TestUpdate_Page_DefaultRedirectURL(t *testing.T) {
+	crud := newTestCrud()
+	crud.updateFields = []form.FieldInterface{
+		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	}
+	crud.funcFetchUpdateData = func(r *http.Request, entityID string) (map[string]string, error) {
+		return map[string]string{"title": "Test"}, nil
+	}
+	ctrl := crud.newEntityUpdateController()
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-update&entity_id=123", nil)
+	w := httptest.NewRecorder()
+
+	ctrl.page(w, r)
+
+	body := w.Body.String()
+	// Default redirect should be the endpoint ("/admin")
+	if !strings.Contains(body, `entityManagerUrl = "/admin"`) {
+		t.Fatal("expected default entityManagerUrl to be the endpoint '/admin'")
+	}
+}
+
+func TestUpdate_Page_CustomRedirectURL(t *testing.T) {
+	crud := newTestCrud()
+	crud.updateRedirectURL = "/custom/after-save"
+	crud.updateFields = []form.FieldInterface{
+		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	}
+	crud.funcFetchUpdateData = func(r *http.Request, entityID string) (map[string]string, error) {
+		return map[string]string{"title": "Test"}, nil
+	}
+	ctrl := crud.newEntityUpdateController()
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-update&entity_id=123", nil)
+	w := httptest.NewRecorder()
+
+	ctrl.page(w, r)
+
+	body := w.Body.String()
+	if !strings.Contains(body, `entityManagerUrl = "/custom/after-save"`) {
+		t.Fatal("expected custom entityManagerUrl '/custom/after-save' in page output")
+	}
+}

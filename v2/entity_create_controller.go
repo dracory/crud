@@ -67,7 +67,10 @@ func (controller *entityCreateController) modalSave(w http.ResponseWriter, r *ht
 		return
 	}
 
-	redirectURL := controller.crud.UrlEntityUpdate() + "&entity_id=" + entityID
+	redirectURL := controller.crud.createRedirectURL
+	if redirectURL == "" {
+		redirectURL = controller.crud.UrlEntityUpdate() + "&entity_id=" + entityID
+	}
 	api.Respond(w, r, api.SuccessWithData("Saved successfully", map[string]interface{}{"entity_id": entityID, "redirect_url": redirectURL}))
 }
 

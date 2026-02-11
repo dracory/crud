@@ -81,7 +81,11 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	urlHome, err := json.Marshal(controller.crud.endpoint)
+	saveRedirectURL := controller.crud.updateRedirectURL
+	if saveRedirectURL == "" {
+		saveRedirectURL = controller.crud.endpoint
+	}
+	urlHome, err := json.Marshal(saveRedirectURL)
 	if err != nil {
 		api.Respond(w, r, api.Error("Failed to encode URL"))
 		return

@@ -175,6 +175,61 @@ func TestCreate_ModalSave_Success(t *testing.T) {
 	}
 }
 
+func TestCreate_ModalSave_DefaultRedirectURL(t *testing.T) {
+	crud := newTestCrud()
+	crud.createFields = []form.FieldInterface{
+		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	}
+	crud.funcCreate = func(r *http.Request, data map[string]string) (string, error) {
+		return "abc-123", nil
+	}
+	ctrl := crud.newEntityCreateController()
+
+	formData := url.Values{}
+	formData.Set("title", "Test")
+	r := httptest.NewRequest(http.MethodPost, "/admin?path=entity-create-ajax", strings.NewReader(formData.Encode()))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	ctrl.modalSave(w, r)
+
+	var resp map[string]interface{}
+	json.Unmarshal([]byte(w.Body.String()), &resp)
+	data := resp["data"].(map[string]interface{})
+	redirectURL := data["redirect_url"].(string)
+	if !strings.Contains(redirectURL, "entity-update") || !strings.Contains(redirectURL, "abc-123") {
+		t.Fatalf("expected default redirect to update page with entity ID, got: %s", redirectURL)
+	}
+}
+
+func TestCreate_ModalSave_CustomRedirectURL(t *testing.T) {
+	crud := newTestCrud()
+	crud.createRedirectURL = "/custom/redirect"
+	crud.createFields = []form.FieldInterface{
+		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	}
+	crud.funcCreate = func(r *http.Request, data map[string]string) (string, error) {
+		return "abc-123", nil
+	}
+	ctrl := crud.newEntityCreateController()
+
+	formData := url.Values{}
+	formData.Set("title", "Test")
+	r := httptest.NewRequest(http.MethodPost, "/admin?path=entity-create-ajax", strings.NewReader(formData.Encode()))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	ctrl.modalSave(w, r)
+
+	var resp map[string]interface{}
+	json.Unmarshal([]byte(w.Body.String()), &resp)
+	data := resp["data"].(map[string]interface{})
+	redirectURL := data["redirect_url"].(string)
+	if redirectURL != "/custom/redirect" {
+		t.Fatalf("expected custom redirect URL '/custom/redirect', got: %s", redirectURL)
+	}
+}
+
 func TestCreate_ModalShow_ReturnsHTML(t *testing.T) {
 	crud := newTestCrud()
 	crud.createFields = []form.FieldInterface{
