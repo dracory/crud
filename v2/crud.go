@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/dracory/api"
 	"github.com/dracory/bs"
 	"github.com/dracory/cdn"
 	"github.com/dracory/form"
@@ -35,6 +36,7 @@ type Crud struct {
 	updateFields        []form.FieldInterface
 	funcBeforeAction    func(w http.ResponseWriter, r *http.Request, action string) bool
 	funcAfterAction     func(w http.ResponseWriter, r *http.Request, action string)
+	funcValidateCSRF    func(r *http.Request) error
 }
 
 func (crud Crud) Handler(w http.ResponseWriter, r *http.Request) {
@@ -46,6 +48,13 @@ func (crud Crud) Handler(w http.ResponseWriter, r *http.Request) {
 
 	if crud.funcBeforeAction != nil {
 		if !crud.funcBeforeAction(w, r, path) {
+			return
+		}
+	}
+
+	if crud.funcValidateCSRF != nil && r.Method == http.MethodPost {
+		if err := crud.funcValidateCSRF(r); err != nil {
+			api.Respond(w, r, api.Error("CSRF validation failed: "+err.Error()))
 			return
 		}
 	}

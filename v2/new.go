@@ -41,6 +41,7 @@ func New(config Config) (crud Crud, err error) {
 	crud.updateFields = config.UpdateFields
 	crud.funcBeforeAction = config.FuncBeforeAction
 	crud.funcAfterAction = config.FuncAfterAction
+	crud.funcValidateCSRF = config.FuncValidateCSRF
 
 	return crud, err
 }

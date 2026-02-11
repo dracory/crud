@@ -1,6 +1,7 @@
 package crud
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -370,6 +371,105 @@ func TestHandler_FuncBeforeAction_ReceivesDefaultPath(t *testing.T) {
 
 	if calledAction != "home" {
 		t.Fatalf("expected action 'home' for default path, got: %s", calledAction)
+	}
+}
+
+// ==========================================================================
+// CSRF validation tests
+// ==========================================================================
+
+func TestHandler_CSRF_BlocksPostWhenValidationFails(t *testing.T) {
+	crud := newTestCrud()
+	crud.funcCreate = func(r *http.Request, data map[string]string) (string, error) {
+		return "1", nil
+	}
+	crud.funcValidateCSRF = func(r *http.Request) error {
+		return errors.New("invalid token")
+	}
+
+	r := httptest.NewRequest(http.MethodPost, "/admin?path=entity-create-ajax", nil)
+	w := httptest.NewRecorder()
+
+	crud.Handler(w, r)
+
+	body := w.Body.String()
+	if !strings.Contains(body, "CSRF validation failed") {
+		t.Fatalf("expected CSRF error in response, got: %s", body)
+	}
+	if !strings.Contains(body, "invalid token") {
+		t.Fatalf("expected 'invalid token' in response, got: %s", body)
+	}
+}
+
+func TestHandler_CSRF_AllowsPostWhenValidationPasses(t *testing.T) {
+	crud := newTestCrud()
+	crud.funcCreate = func(r *http.Request, data map[string]string) (string, error) {
+		return "1", nil
+	}
+	crud.funcValidateCSRF = func(r *http.Request) error {
+		return nil
+	}
+	crud.createFields = []form.FieldInterface{
+		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	}
+
+	formData := "title=Test"
+	r := httptest.NewRequest(http.MethodPost, "/admin?path=entity-create-ajax", strings.NewReader(formData))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	crud.Handler(w, r)
+
+	body := w.Body.String()
+	if strings.Contains(body, "CSRF validation failed") {
+		t.Fatalf("expected no CSRF error, got: %s", body)
+	}
+	if !strings.Contains(body, "Saved successfully") {
+		t.Fatalf("expected 'Saved successfully', got: %s", body)
+	}
+}
+
+func TestHandler_CSRF_SkippedOnGetRequests(t *testing.T) {
+	csrfCalled := false
+	crud := newTestCrud()
+	crud.funcValidateCSRF = func(r *http.Request) error {
+		csrfCalled = true
+		return errors.New("should not be called")
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-manager", nil)
+	w := httptest.NewRecorder()
+
+	crud.Handler(w, r)
+
+	if csrfCalled {
+		t.Fatal("expected CSRF validation NOT to be called on GET requests")
+	}
+	if w.Result().StatusCode != http.StatusOK {
+		t.Fatalf("expected status 200, got: %d", w.Result().StatusCode)
+	}
+}
+
+func TestHandler_CSRF_SkippedWhenNil(t *testing.T) {
+	crud := newTestCrud()
+	crud.funcValidateCSRF = nil
+	crud.funcCreate = func(r *http.Request, data map[string]string) (string, error) {
+		return "1", nil
+	}
+	crud.createFields = []form.FieldInterface{
+		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	}
+
+	formData := "title=Test"
+	r := httptest.NewRequest(http.MethodPost, "/admin?path=entity-create-ajax", strings.NewReader(formData))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	crud.Handler(w, r)
+
+	body := w.Body.String()
+	if !strings.Contains(body, "Saved successfully") {
+		t.Fatalf("expected 'Saved successfully' when CSRF is nil, got: %s", body)
 	}
 }
 
