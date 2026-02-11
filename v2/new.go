@@ -39,6 +39,8 @@ func New(config Config) (crud Crud, err error) {
 	crud.createRedirectURL = config.CreateRedirectURL
 	crud.updateRedirectURL = config.UpdateRedirectURL
 	crud.updateFields = config.UpdateFields
+	crud.funcBeforeAction = config.FuncBeforeAction
+	crud.funcAfterAction = config.FuncAfterAction
 
 	return crud, err
 }

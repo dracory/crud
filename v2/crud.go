@@ -33,6 +33,8 @@ type Crud struct {
 	createRedirectURL   string
 	updateRedirectURL   string
 	updateFields        []form.FieldInterface
+	funcBeforeAction    func(w http.ResponseWriter, r *http.Request, action string) bool
+	funcAfterAction     func(w http.ResponseWriter, r *http.Request, action string)
 }
 
 func (crud Crud) Handler(w http.ResponseWriter, r *http.Request) {
@@ -42,12 +44,22 @@ func (crud Crud) Handler(w http.ResponseWriter, r *http.Request) {
 		path = pathHome
 	}
 
+	if crud.funcBeforeAction != nil {
+		if !crud.funcBeforeAction(w, r, path) {
+			return
+		}
+	}
+
 	type contextKey string
 	const ctxKeyPath contextKey = "path"
 	ctx := context.WithValue(r.Context(), ctxKeyPath, r.URL.Path)
 
 	routeFunc := crud.getRoute(path)
 	routeFunc(w, r.WithContext(ctx))
+
+	if crud.funcAfterAction != nil {
+		crud.funcAfterAction(w, r, path)
+	}
 }
 
 func (crud *Crud) getRoute(route string) func(w http.ResponseWriter, r *http.Request) {

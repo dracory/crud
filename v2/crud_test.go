@@ -272,6 +272,108 @@ func TestHandler_UnknownRouteFallsBackToHome(t *testing.T) {
 }
 
 // ==========================================================================
+// Middleware hooks tests
+// ==========================================================================
+
+func TestHandler_FuncBeforeAction_Called(t *testing.T) {
+	var calledAction string
+	crud := newTestCrud()
+	crud.funcBeforeAction = func(w http.ResponseWriter, r *http.Request, action string) bool {
+		calledAction = action
+		return true
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-manager", nil)
+	w := httptest.NewRecorder()
+
+	crud.Handler(w, r)
+
+	if calledAction != "entity-manager" {
+		t.Fatalf("expected action 'entity-manager', got: %s", calledAction)
+	}
+	if w.Result().StatusCode != http.StatusOK {
+		t.Fatalf("expected status 200, got: %d", w.Result().StatusCode)
+	}
+}
+
+func TestHandler_FuncBeforeAction_Aborts(t *testing.T) {
+	crud := newTestCrud()
+	crud.funcBeforeAction = func(w http.ResponseWriter, r *http.Request, action string) bool {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("Access denied"))
+		return false
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-manager", nil)
+	w := httptest.NewRecorder()
+
+	crud.Handler(w, r)
+
+	if w.Result().StatusCode != http.StatusForbidden {
+		t.Fatalf("expected status 403, got: %d", w.Result().StatusCode)
+	}
+	body := w.Body.String()
+	if body != "Access denied" {
+		t.Fatalf("expected 'Access denied', got: %s", body)
+	}
+}
+
+func TestHandler_FuncAfterAction_Called(t *testing.T) {
+	var calledAction string
+	crud := newTestCrud()
+	crud.funcAfterAction = func(w http.ResponseWriter, r *http.Request, action string) {
+		calledAction = action
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-manager", nil)
+	w := httptest.NewRecorder()
+
+	crud.Handler(w, r)
+
+	if calledAction != "entity-manager" {
+		t.Fatalf("expected action 'entity-manager', got: %s", calledAction)
+	}
+}
+
+func TestHandler_FuncAfterAction_NotCalledWhenAborted(t *testing.T) {
+	afterCalled := false
+	crud := newTestCrud()
+	crud.funcBeforeAction = func(w http.ResponseWriter, r *http.Request, action string) bool {
+		return false
+	}
+	crud.funcAfterAction = func(w http.ResponseWriter, r *http.Request, action string) {
+		afterCalled = true
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-manager", nil)
+	w := httptest.NewRecorder()
+
+	crud.Handler(w, r)
+
+	if afterCalled {
+		t.Fatal("expected FuncAfterAction NOT to be called when FuncBeforeAction aborts")
+	}
+}
+
+func TestHandler_FuncBeforeAction_ReceivesDefaultPath(t *testing.T) {
+	var calledAction string
+	crud := newTestCrud()
+	crud.funcBeforeAction = func(w http.ResponseWriter, r *http.Request, action string) bool {
+		calledAction = action
+		return true
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/admin", nil)
+	w := httptest.NewRecorder()
+
+	crud.Handler(w, r)
+
+	if calledAction != "home" {
+		t.Fatalf("expected action 'home' for default path, got: %s", calledAction)
+	}
+}
+
+// ==========================================================================
 // Layout tests
 // ==========================================================================
 
