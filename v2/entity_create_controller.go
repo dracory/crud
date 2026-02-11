@@ -1,9 +1,9 @@
 package crud
 
 import (
-	"encoding/json"
 	"net/http"
 
+	"github.com/dracory/api"
 	"github.com/dracory/bs"
 	"github.com/dracory/form"
 	"github.com/dracory/hb"
@@ -27,14 +27,12 @@ func (controller *entityCreateController) modalShow(w http.ResponseWriter, r *ht
 
 func (controller *entityCreateController) modalSave(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		response := hb.Swal(hb.SwalOptions{Icon: "error", Text: "Method not allowed"}).ToHTML()
-		w.Write([]byte(response))
+		api.Respond(w, r, api.Error("Method not allowed"))
 		return
 	}
 
 	if controller.crud.funcCreate == nil {
-		response := hb.Swal(hb.SwalOptions{Icon: "error", Text: "Create functionality is not configured"}).ToHTML()
-		w.Write([]byte(response))
+		api.Respond(w, r, api.Error("Create functionality is not configured"))
 		return
 	}
 
@@ -52,16 +50,12 @@ func (controller *entityCreateController) modalSave(w http.ResponseWriter, r *ht
 		}
 
 		if _, exists := posts[field.GetName()]; !exists {
-			errorMessage := field.GetLabel() + " is required field"
-			response := hb.Swal(hb.SwalOptions{Icon: "error", Text: errorMessage}).ToHTML()
-			w.Write([]byte(response))
+			api.Respond(w, r, api.Error(field.GetLabel()+" is required field"))
 			return
 		}
 
 		if lo.IsEmpty(posts[field.GetName()]) {
-			errorMessage := field.GetLabel() + " is required field"
-			response := hb.Swal(hb.SwalOptions{Icon: "error", Text: errorMessage}).ToHTML()
-			w.Write([]byte(response))
+			api.Respond(w, r, api.Error(field.GetLabel()+" is required field"))
 			return
 		}
 	}
@@ -69,24 +63,12 @@ func (controller *entityCreateController) modalSave(w http.ResponseWriter, r *ht
 	entityID, err := controller.crud.funcCreate(r, posts)
 
 	if err != nil {
-		errorMessage := "Save failed: " + err.Error()
-		response := hb.Swal(hb.SwalOptions{Icon: "error", Text: errorMessage}).ToHTML()
-		w.Write([]byte(response))
+		api.Respond(w, r, api.Error("Save failed: "+err.Error()))
 		return
 	}
 
 	redirectURL := controller.crud.UrlEntityUpdate() + "&entity_id=" + entityID
-	redirectURLJson, _ := json.Marshal(redirectURL)
-	successMessage := "Saved successfully"
-	response := hb.Wrap().
-		Child(hb.Swal(hb.SwalOptions{
-			Icon: "success",
-			Text: successMessage,
-		})).
-		Child(hb.Script("setTimeout(() => {window.location.href = " + string(redirectURLJson) + "}, 2000)")).
-		ToHTML()
-
-	w.Write([]byte(response))
+	api.Respond(w, r, api.SuccessWithData("Saved successfully", map[string]interface{}{"entity_id": entityID, "redirect_url": redirectURL}))
 }
 
 func (controller *entityCreateController) modal() hb.TagInterface {
@@ -114,15 +96,28 @@ func (controller *entityCreateController) modal() hb.TagInterface {
 
 	jsCloseFn := `function closeModal` + modalID + `() {document.getElementById('ModalEntityCreate').remove();[...document.getElementsByClassName('` + modalBackdropClass + `')].forEach(el => el.remove());}`
 
+	jsSubmitFn := `function submitModal` + modalID + `() {
+		const form = document.getElementById('` + modalID + `');
+		const formData = new FormData(form);
+		fetch('` + submitUrl + `', {method:'POST', body: new URLSearchParams(formData)})
+			.then(r => r.json())
+			.then(result => {
+				if (result.status === 'success') {
+					Swal.fire({icon:'success', title:'Saved successfully'}).then(() => {
+						if (result.data && result.data.redirect_url) { window.location.href = result.data.redirect_url; }
+					});
+				} else {
+					Swal.fire({icon:'error', title:'Oops...', text: result.message});
+				}
+			})
+			.catch(err => { Swal.fire({icon:'error', title:'Oops...', text: err.toString()}); });
+	}`
+
 	buttonSubmit := hb.Button().
 		Child(hb.I().Class("bi bi-check me-2")).
 		HTML("Create & Edit").
 		Class("btn btn-primary float-end").
-		HxInclude("#" + modalID).
-		HxPost(submitUrl).
-		HxSelectOob("#ModalEntityCreate").
-		HxTarget("body").
-		HxSwap("beforeend")
+		OnClick("submitModal" + modalID + "()")
 
 	buttonCancel := hb.Button().
 		Child(hb.I().Class("bi bi-chevron-left me-2")).
@@ -136,6 +131,7 @@ func (controller *entityCreateController) modal() hb.TagInterface {
 		Class("fade show").
 		Style(`display:block;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1051;`).
 		Child(hb.Script(jsCloseFn)).
+		Child(hb.Script(jsSubmitFn)).
 		Child(bs.ModalDialog().
 			Child(bs.ModalContent().
 				Child(

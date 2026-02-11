@@ -1,6 +1,7 @@
 package crud
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -21,8 +22,15 @@ func TestCreate_ModalSave_MethodNotAllowed_GET(t *testing.T) {
 	ctrl.modalSave(w, r)
 
 	body := w.Body.String()
-	if !strings.Contains(body, "Method not allowed") {
-		t.Fatalf("expected 'Method not allowed' in response, got: %s", body)
+	var resp map[string]interface{}
+	if err := json.Unmarshal([]byte(body), &resp); err != nil {
+		t.Fatalf("expected JSON response, got: %s", body)
+	}
+	if resp["status"] != "error" {
+		t.Fatalf("expected status 'error', got: %v", resp["status"])
+	}
+	if !strings.Contains(resp["message"].(string), "Method not allowed") {
+		t.Fatalf("expected 'Method not allowed' message, got: %v", resp["message"])
 	}
 }
 
@@ -37,8 +45,15 @@ func TestCreate_ModalSave_NilFuncCreate(t *testing.T) {
 	ctrl.modalSave(w, r)
 
 	body := w.Body.String()
-	if !strings.Contains(body, "Create functionality is not configured") {
-		t.Fatalf("expected 'Create functionality is not configured' in response, got: %s", body)
+	var resp map[string]interface{}
+	if err := json.Unmarshal([]byte(body), &resp); err != nil {
+		t.Fatalf("expected JSON response, got: %s", body)
+	}
+	if resp["status"] != "error" {
+		t.Fatalf("expected status 'error', got: %v", resp["status"])
+	}
+	if !strings.Contains(resp["message"].(string), "Create functionality is not configured") {
+		t.Fatalf("expected 'Create functionality is not configured' message, got: %v", resp["message"])
 	}
 }
 
@@ -66,8 +81,15 @@ func TestCreate_ModalSave_RequiredFieldEmpty(t *testing.T) {
 	ctrl.modalSave(w, r)
 
 	body := w.Body.String()
-	if !strings.Contains(body, "is required field") {
-		t.Fatalf("expected 'is required field' in response, got: %s", body)
+	var resp map[string]interface{}
+	if err := json.Unmarshal([]byte(body), &resp); err != nil {
+		t.Fatalf("expected JSON response, got: %s", body)
+	}
+	if resp["status"] != "error" {
+		t.Fatalf("expected status 'error', got: %v", resp["status"])
+	}
+	if !strings.Contains(resp["message"].(string), "is required field") {
+		t.Fatalf("expected 'is required field' message, got: %v", resp["message"])
 	}
 }
 
@@ -94,8 +116,15 @@ func TestCreate_ModalSave_FuncCreateError(t *testing.T) {
 	ctrl.modalSave(w, r)
 
 	body := w.Body.String()
-	if !strings.Contains(body, "Save failed") {
-		t.Fatalf("expected 'Save failed' in response, got: %s", body)
+	var resp map[string]interface{}
+	if err := json.Unmarshal([]byte(body), &resp); err != nil {
+		t.Fatalf("expected JSON response, got: %s", body)
+	}
+	if resp["status"] != "error" {
+		t.Fatalf("expected status 'error', got: %v", resp["status"])
+	}
+	if !strings.Contains(resp["message"].(string), "Save failed") {
+		t.Fatalf("expected 'Save failed' message, got: %v", resp["message"])
 	}
 }
 
@@ -124,8 +153,22 @@ func TestCreate_ModalSave_Success(t *testing.T) {
 	ctrl.modalSave(w, r)
 
 	body := w.Body.String()
-	if !strings.Contains(body, "Saved successfully") {
-		t.Fatalf("expected 'Saved successfully' in response, got: %s", body)
+	var resp map[string]interface{}
+	if err := json.Unmarshal([]byte(body), &resp); err != nil {
+		t.Fatalf("expected JSON response, got: %s", body)
+	}
+	if resp["status"] != "success" {
+		t.Fatalf("expected status 'success', got: %v", resp["status"])
+	}
+	if !strings.Contains(resp["message"].(string), "Saved successfully") {
+		t.Fatalf("expected 'Saved successfully' message, got: %v", resp["message"])
+	}
+	data := resp["data"].(map[string]interface{})
+	if data["entity_id"] != "new-entity-id" {
+		t.Fatalf("expected entity_id 'new-entity-id', got: %v", data["entity_id"])
+	}
+	if data["redirect_url"] == nil || data["redirect_url"] == "" {
+		t.Fatal("expected redirect_url in response data")
 	}
 	if receivedData["title"] != "Test Product" {
 		t.Fatalf("expected title 'Test Product', got: %s", receivedData["title"])
