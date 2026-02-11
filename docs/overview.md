@@ -14,14 +14,19 @@ HTTP Request
     ▼
 Crud.Handler(w, r)
     │
-    ├── path=""  or "home"  ──► entityManagerController.page
-    ├── path="entity-manager"  ──► entityManagerController.page
-    ├── path="entity-create-modal" ──► entityCreateController.modalShow
-    ├── path="entity-create-ajax"  ──► entityCreateController.modalSave  (POST only)
-    ├── path="entity-read"         ──► entityReadController.page
-    ├── path="entity-update"       ──► entityUpdateController.page
-    ├── path="entity-update-ajax"  ──► entityUpdateController.pageSave   (POST only)
-    └── path="entity-trash-ajax"   ──► entityTrashController.pageEntityTrashAjax (POST only)
+    ├── 1. FuncLog ("handling request")        [if configured]
+    ├── 2. FuncBeforeAction(w, r, action)       [if configured; return false to abort]
+    ├── 3. FuncValidateCSRF(r)                  [if configured; POST only]
+    ├── 4. Route dispatch:
+    │      ├── path=""  or "home"  ──► entityManagerController.page
+    │      ├── path="entity-manager"  ──► entityManagerController.page
+    │      ├── path="entity-create-modal" ──► entityCreateController.modalShow
+    │      ├── path="entity-create-ajax"  ──► entityCreateController.modalSave  (POST only)
+    │      ├── path="entity-read"         ──► entityReadController.page
+    │      ├── path="entity-update"       ──► entityUpdateController.page
+    │      ├── path="entity-update-ajax"  ──► entityUpdateController.pageSave   (POST only)
+    │      └── path="entity-trash-ajax"   ──► entityTrashController.pageEntityTrashAjax (POST only)
+    └── 5. FuncAfterAction(w, r, action)        [if configured; skipped if aborted]
 ```
 
 Unknown paths fall back to the entity manager page (home).
@@ -33,6 +38,7 @@ Unknown paths fall back to the entity manager page (home).
 | `Crud` | `crud.go` | Central struct holding configuration, routing, layout, form rendering, URL helpers, and breadcrumbs |
 | `Config` | `config.go` | Configuration struct passed to `New()` to create a `Crud` instance |
 | `Row` | `row.go` | Represents a single row in the entity manager table |
+| `KeyValue` | `key_value.go` | Key-value pair used by `FuncFetchReadData` for the read view |
 | `Breadcrumb` | `breadcrumb.go` | Represents a breadcrumb navigation item |
 
 ## Controllers (internal)
@@ -79,5 +85,6 @@ See `go.mod` for the full list. Key dependencies:
 - **XSS Prevention**: All user-controlled values interpolated into inline JavaScript are JSON-encoded via `json.Marshal` before embedding.
 - **HTTP Method Enforcement**: All state-mutating endpoints (create, update, trash) enforce `POST` method and reject other methods.
 - **Nil Safety**: All optional callback functions (`FuncCreate`, `FuncTrash`, `FuncFetchUpdateData`, etc.) are checked for `nil` before invocation.
-- **Authentication/Authorization**: Not handled by this package. The consumer is responsible for wrapping `Crud.Handler` with appropriate middleware.
-- **CSRF**: Not handled by this package. The consumer should implement CSRF protection at the middleware level.
+- **CSRF Validation**: Optional `FuncValidateCSRF` hook validates POST requests before controller actions. Returns a JSON error if validation fails.
+- **Middleware Hooks**: `FuncBeforeAction` enables per-action authorization (e.g., "this user can read but not trash").
+- **Authentication/Authorization**: Not handled directly by this package. Use `FuncBeforeAction` for per-action checks, or wrap `Crud.Handler` with your own middleware.

@@ -18,11 +18,16 @@ import crud "github.com/dracory/crud/v2"
 
 Key improvements over v1:
 
-- **Security** — XSS prevention via JSON-encoded inline JS values, HTTP method enforcement on mutating endpoints, nil safety on all callbacks
+- **Security** — XSS prevention via JSON-encoded inline JS values, HTTP method enforcement on mutating endpoints, nil safety on all callbacks, optional CSRF validation
 - **Architecture** — Controller-based routing, separated concerns across dedicated files
 - **Form system** — Uses `github.com/dracory/form` package with 11 field types
 - **HTMX integration** — Create modal loaded via HTMX instead of inline Vue.js
-- **Comprehensive tests** — 56 tests covering all controllers, validation, routing, and rendering
+- **Middleware hooks** — `FuncBeforeAction` / `FuncAfterAction` for per-action authorization and audit logging
+- **Server-side pagination** — Configurable `PageSize` and `FuncRowsCount` for large datasets
+- **Structured logging** — Optional `FuncLog` callback for centralized request logging
+- **Unified JSON responses** — All AJAX endpoints return consistent JSON via `api.Respond`
+- **Request context** — All callbacks receive `*http.Request` for access to auth, headers, and context
+- **Comprehensive tests** — 76 tests covering all controllers, validation, routing, rendering, and new features
 
 See [`v2/README.md`](v2/README.md) for full documentation, quick start example, and API reference.
 

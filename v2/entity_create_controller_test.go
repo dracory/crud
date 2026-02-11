@@ -194,7 +194,7 @@ func TestCreate_ModalSave_DefaultRedirectURL(t *testing.T) {
 	ctrl.modalSave(w, r)
 
 	var resp map[string]interface{}
-	json.Unmarshal([]byte(w.Body.String()), &resp)
+	json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]interface{})
 	redirectURL := data["redirect_url"].(string)
 	if !strings.Contains(redirectURL, "entity-update") || !strings.Contains(redirectURL, "abc-123") {
@@ -222,7 +222,7 @@ func TestCreate_ModalSave_CustomRedirectURL(t *testing.T) {
 	ctrl.modalSave(w, r)
 
 	var resp map[string]interface{}
-	json.Unmarshal([]byte(w.Body.String()), &resp)
+	json.Unmarshal(w.Body.Bytes(), &resp)
 	data := resp["data"].(map[string]interface{})
 	redirectURL := data["redirect_url"].(string)
 	if redirectURL != "/custom/redirect" {

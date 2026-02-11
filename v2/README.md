@@ -28,33 +28,33 @@ func main() {
 		EntityNamePlural:   "Products",
 		HomeURL:            "/",
 		ColumnNames:        []string{"ID", "Name", "Status"},
-		FuncRows: func() ([]crud.Row, error) {
+		FuncRows: func(r *http.Request) ([]crud.Row, error) {
 			return []crud.Row{
 				{ID: "1", Data: []string{"1", "Widget", "Active"}},
 				{ID: "2", Data: []string{"2", "Gadget", "Draft"}},
 			}, nil
 		},
-		FuncCreate: func(data map[string]string) (string, error) {
+		FuncCreate: func(r *http.Request, data map[string]string) (string, error) {
 			// Save to database, return new entity ID
 			return "3", nil
 		},
-		FuncFetchUpdateData: func(entityID string) (map[string]string, error) {
+		FuncFetchUpdateData: func(r *http.Request, entityID string) (map[string]string, error) {
 			// Fetch current values from database
 			return map[string]string{"name": "Widget", "status": "active"}, nil
 		},
-		FuncUpdate: func(entityID string, data map[string]string) error {
+		FuncUpdate: func(r *http.Request, entityID string, data map[string]string) error {
 			// Update in database
 			return nil
 		},
-		FuncTrash: func(entityID string) error {
+		FuncTrash: func(r *http.Request, entityID string) error {
 			// Soft-delete in database
 			return nil
 		},
-		FuncFetchReadData: func(entityID string) ([][2]string, error) {
+		FuncFetchReadData: func(r *http.Request, entityID string) ([]crud.KeyValue, error) {
 			// Return key-value pairs for read view
-			return [][2]string{
-				{"Name", "Widget"},
-				{"Status", "Active"},
+			return []crud.KeyValue{
+				{Key: "Name", Value: "Widget"},
+				{Key: "Status", Value: "Active"},
 			}, nil
 		},
 		CreateFields: []form.FieldInterface{
@@ -106,12 +106,19 @@ func main() {
 
 - **Entity Manager** - Sortable DataTable listing with view, edit, and trash actions
 - **Create Modal** - Bootstrap modal loaded via HTMX with form validation
-- **Read View** - Read-only entity detail page with key-value table
+- **Read View** - Read-only entity detail page with `KeyValue` pairs
 - **Update Form** - Vue.js reactive form with two-way data binding
 - **Trash** - Soft-delete with confirmation modal
 - **Custom Layout** - Plug in your own layout function to wrap pages in your app shell
 - **11 Field Types** - String, number, password, textarea, select, image, inline image, HTML editor, block editor, datetime picker, and raw HTML
 - **Raw HTML Support** - Column names and read view values support `{!! !!}` syntax for raw HTML rendering
+- **Middleware Hooks** - `FuncBeforeAction` / `FuncAfterAction` for per-action authorization, audit logging, and custom headers
+- **CSRF Validation** - Optional `FuncValidateCSRF` hook validates POST requests before controller actions
+- **Server-Side Pagination** - Configurable `PageSize` and `FuncRowsCount` for large datasets
+- **Structured Logging** - Optional `FuncLog` callback for centralized logging of requests, aborts, and errors
+- **Configurable Redirects** - `CreateRedirectURL` and `UpdateRedirectURL` for custom post-action navigation
+- **Unified JSON Responses** - All AJAX endpoints (create, update, trash) return consistent JSON via `api.Respond`
+- **Request Context** - All callbacks receive `*http.Request` for access to auth, headers, cookies, and context
 
 ## Form Field Types
 
@@ -160,7 +167,7 @@ cd v2
 go test ./... -v
 ```
 
-56 tests covering all controllers, validation, URL generation, breadcrumbs, routing, and layout rendering.
+76 tests covering all controllers, validation, URL generation, breadcrumbs, routing, layout rendering, middleware hooks, CSRF validation, pagination, and structured logging.
 
 ## Documentation
 
@@ -191,7 +198,9 @@ The default layout includes (via CDN):
 - All user-controlled values in inline JavaScript are JSON-encoded to prevent XSS
 - State-mutating endpoints enforce POST method
 - Optional callbacks are nil-checked before invocation
-- Authentication, authorization, and CSRF protection are the consumer's responsibility
+- Optional `FuncValidateCSRF` validates POST requests before controller actions
+- `FuncBeforeAction` enables per-action authorization (e.g., read-only users)
+- Authentication is the consumer's responsibility (use `FuncBeforeAction` or external middleware)
 
 ## License
 

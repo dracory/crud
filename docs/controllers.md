@@ -35,6 +35,7 @@ Renders the main entity listing page with:
   - DataTable initialization
   - Create modal display
   - Trash confirmation modal with AJAX POST
+- **Server-side pagination** (when `PageSize > 0` and `FuncRowsCount` is configured): Bootstrap pagination controls are rendered below the table. The current page is read from the `page` query parameter.
 
 **Response:** Full HTML page with `Content-Type: text/html`.
 
@@ -73,14 +74,14 @@ This endpoint is designed to be loaded via HTMX into the page body.
 
 Processes entity creation:
 
-1. **Method check**: Rejects non-POST requests with a Sweetalert2 error.
+1. **Method check**: Rejects non-POST requests with a JSON error.
 2. **Nil check**: Returns error if `FuncCreate` is not configured.
 3. **Field extraction**: Reads form values for all `CreateFields` by name.
 4. **Required field validation**: Checks that all required fields have non-empty values.
-5. **Creation**: Calls `FuncCreate` with the collected data.
-6. **Success response**: Returns a Sweetalert2 success message and a JavaScript redirect to the update page for the new entity (after 2 seconds).
+5. **Creation**: Calls `FuncCreate(r, data)` with the collected data.
+6. **Success response**: Returns JSON with `status: "success"`, `entity_id`, and `redirect_url`. The redirect URL defaults to the update page for the new entity, but can be customized via `CreateRedirectURL`.
 
-**Response:** HTML fragment with Sweetalert2 script tags (not JSON).
+**Response:** JSON (`api.Response` format).
 
 ---
 
@@ -93,9 +94,9 @@ Processes entity creation:
 Renders a read-only view of an entity:
 
 1. **Validation**: Requires `entity_id` parameter and `FuncFetchReadData` to be configured.
-2. **Data fetch**: Calls `FuncFetchReadData(entityID)` to get key-value pairs.
+2. **Data fetch**: Calls `FuncFetchReadData(r, entityID)` to get `[]KeyValue` pairs.
 3. **Rendering**: Displays data in a striped table within a Bootstrap card.
-4. **Raw HTML support**: Keys and values wrapped in `{!! !!}` are rendered as raw HTML.
+4. **Raw HTML support**: `KeyValue.Key` and `KeyValue.Value` wrapped in `{!! !!}` are rendered as raw HTML.
 5. **Extras**: If `FuncReadExtras` is configured, appends additional HTML elements below the card.
 6. **Navigation**: Edit button and Back button in the heading.
 
@@ -116,7 +117,7 @@ Renders a read-only view of an entity:
 Renders an edit form for an entity:
 
 1. **Validation**: Requires `entity_id` and `FuncFetchUpdateData` to be configured.
-2. **Data fetch**: Calls `FuncFetchUpdateData(entityID)` to get current field values.
+2. **Data fetch**: Calls `FuncFetchUpdateData(r, entityID)` to get current field values.
 3. **Form rendering**: Generates form fields from `UpdateFields` with Vue.js `v-model` bindings.
 4. **Vue.js app**: Mounts `EntityUpdate` on `#entity-update` with:
    - Two-way data binding for all fields
@@ -138,8 +139,8 @@ Processes entity update:
 2. **Validation**: Requires `entity_id` parameter.
 3. **Field extraction**: Reads form values for all `UpdateFields` by name.
 4. **Required field validation**: Checks that all required fields have non-empty values.
-5. **Update**: Calls `FuncUpdate(entityID, data)`.
-6. **Response**: JSON via `api.Respond` with success/error status.
+5. **Update**: Calls `FuncUpdate(r, entityID, data)`.
+6. **Response**: JSON via `api.Respond` with success/error status. The update page's "Save" button redirects to the entity manager by default, or to `UpdateRedirectURL` if configured.
 
 **Response:** JSON (`api.Response` format).
 
@@ -158,7 +159,7 @@ Processes entity soft-deletion:
 1. **Method check**: Rejects non-POST requests.
 2. **Validation**: Requires `entity_id` parameter.
 3. **Nil check**: Returns error if `FuncTrash` is not configured.
-4. **Trash**: Calls `FuncTrash(entityID)`.
+4. **Trash**: Calls `FuncTrash(r, entityID)`.
 5. **Response**: JSON via `api.Respond` with success/error status.
 
 **Response:** JSON (`api.Response` format).
@@ -171,13 +172,13 @@ The trash controller also provides `pageEntitiesEntityTrashModal()` which genera
 
 ## Response Formats
 
-The controllers use two different response formats:
+All AJAX/save endpoints return unified JSON responses. Page endpoints return full HTML.
 
 | Controller | Endpoint | Format |
 |------------|----------|--------|
 | Entity Manager | `page` | Full HTML page |
 | Entity Create | `modalShow` | HTML fragment (HTMX) |
-| Entity Create | `modalSave` | HTML fragment with Sweetalert2 scripts |
+| Entity Create | `modalSave` | JSON (`api.Response`) |
 | Entity Read | `page` | Full HTML page |
 | Entity Update | `page` | Full HTML page |
 | Entity Update | `pageSave` | JSON (`api.Response`) |
