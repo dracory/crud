@@ -82,9 +82,9 @@ func (controller *entityReadController) page(w http.ResponseWriter, r *http.Requ
 		table := hb.Table().
 			Class("table table-hover table-striped").
 			Child(hb.Thead().Child(hb.TR())).
-			Child(hb.Tbody().Children(lo.Map(data, func(row [2]string, _ int) hb.TagInterface {
-				key := row[0]
-				value := row[1]
+			Child(hb.Tbody().Children(lo.Map(data, func(row KeyValue, _ int) hb.TagInterface {
+				key := row.Key
+				value := row.Value
 				isRawKey := strings.HasPrefix(key, "{!!") && strings.HasSuffix(key, "!!}")
 				isRawValue := strings.HasPrefix(value, "{!!") && strings.HasSuffix(value, "!!}")
 

@@ -113,9 +113,6 @@ func TestNew_ConfigFieldsAreCopied(t *testing.T) {
 	createFields := []form.FieldInterface{
 		form.NewField(form.FieldOptions{Name: "name", Type: FORM_FIELD_TYPE_STRING}),
 	}
-	readFields := []form.FieldInterface{
-		form.NewField(form.FieldOptions{Name: "name", Type: FORM_FIELD_TYPE_STRING}),
-	}
 	updateFields := []form.FieldInterface{
 		form.NewField(form.FieldOptions{Name: "name", Type: FORM_FIELD_TYPE_STRING}),
 	}
@@ -125,7 +122,6 @@ func TestNew_ConfigFieldsAreCopied(t *testing.T) {
 		FuncUpdate:          func(r *http.Request, entityID string, data map[string]string) error { return nil },
 		FuncFetchUpdateData: func(r *http.Request, entityID string) (map[string]string, error) { return nil, nil },
 		CreateFields:        createFields,
-		ReadFields:          readFields,
 		UpdateFields:        updateFields,
 		FileManagerURL:      "/files",
 	})
@@ -134,9 +130,6 @@ func TestNew_ConfigFieldsAreCopied(t *testing.T) {
 	}
 	if len(crud.createFields) != 1 {
 		t.Fatalf("expected 1 create field, got: %d", len(crud.createFields))
-	}
-	if len(crud.readFields) != 1 {
-		t.Fatalf("expected 1 read field, got: %d", len(crud.readFields))
 	}
 	if crud.fileManagerURL != "/files" {
 		t.Fatalf("expected fileManagerURL '/files', got: %s", crud.fileManagerURL)

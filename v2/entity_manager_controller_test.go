@@ -132,7 +132,7 @@ func TestManager_Page_ContentTypeHeader(t *testing.T) {
 
 func TestManager_Page_ShowsActionButtons(t *testing.T) {
 	crud := newTestCrud()
-	crud.funcFetchReadData = func(r *http.Request, entityID string) ([][2]string, error) {
+	crud.funcFetchReadData = func(r *http.Request, entityID string) ([]KeyValue, error) {
 		return nil, nil
 	}
 	crud.funcFetchUpdateData = func(r *http.Request, entityID string) (map[string]string, error) {
