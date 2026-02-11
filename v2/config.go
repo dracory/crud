@@ -31,4 +31,5 @@ type Config struct {
 	FuncBeforeAction    func(w http.ResponseWriter, r *http.Request, action string) bool
 	FuncAfterAction     func(w http.ResponseWriter, r *http.Request, action string)
 	FuncValidateCSRF    func(r *http.Request) error
+	FuncLog             func(level string, message string, attrs map[string]any)
 }

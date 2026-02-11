@@ -39,6 +39,7 @@ type Crud struct {
 	funcBeforeAction    func(w http.ResponseWriter, r *http.Request, action string) bool
 	funcAfterAction     func(w http.ResponseWriter, r *http.Request, action string)
 	funcValidateCSRF    func(r *http.Request) error
+	funcLog             func(level string, message string, attrs map[string]any)
 }
 
 func (crud Crud) Handler(w http.ResponseWriter, r *http.Request) {
@@ -48,14 +49,27 @@ func (crud Crud) Handler(w http.ResponseWriter, r *http.Request) {
 		path = pathHome
 	}
 
+	crud.log(LogLevelInfo, "handling request", map[string]any{
+		"action": path,
+		"method": r.Method,
+		"url":    r.URL.String(),
+	})
+
 	if crud.funcBeforeAction != nil {
 		if !crud.funcBeforeAction(w, r, path) {
+			crud.log(LogLevelWarn, "request aborted by before-action hook", map[string]any{
+				"action": path,
+			})
 			return
 		}
 	}
 
 	if crud.funcValidateCSRF != nil && r.Method == http.MethodPost {
 		if err := crud.funcValidateCSRF(r); err != nil {
+			crud.log(LogLevelWarn, "CSRF validation failed", map[string]any{
+				"action": path,
+				"error":  err.Error(),
+			})
 			api.Respond(w, r, api.Error("CSRF validation failed: "+err.Error()))
 			return
 		}

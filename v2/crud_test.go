@@ -474,6 +474,105 @@ func TestHandler_CSRF_SkippedWhenNil(t *testing.T) {
 }
 
 // ==========================================================================
+// Structured logging tests
+// ==========================================================================
+
+func TestHandler_FuncLog_CalledOnRequest(t *testing.T) {
+	var loggedLevel, loggedMessage string
+	var loggedAttrs map[string]any
+	crud := newTestCrud()
+	crud.funcLog = func(level string, message string, attrs map[string]any) {
+		if message == "handling request" {
+			loggedLevel = level
+			loggedMessage = message
+			loggedAttrs = attrs
+		}
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-manager", nil)
+	w := httptest.NewRecorder()
+
+	crud.Handler(w, r)
+
+	if loggedLevel != LogLevelInfo {
+		t.Fatalf("expected log level 'info', got: %s", loggedLevel)
+	}
+	if loggedMessage != "handling request" {
+		t.Fatalf("expected message 'handling request', got: %s", loggedMessage)
+	}
+	if loggedAttrs["action"] != "entity-manager" {
+		t.Fatalf("expected action 'entity-manager', got: %v", loggedAttrs["action"])
+	}
+	if loggedAttrs["method"] != "GET" {
+		t.Fatalf("expected method 'GET', got: %v", loggedAttrs["method"])
+	}
+}
+
+func TestHandler_FuncLog_NotCalledWhenNil(t *testing.T) {
+	crud := newTestCrud()
+	crud.funcLog = nil
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-manager", nil)
+	w := httptest.NewRecorder()
+
+	// Should not panic
+	crud.Handler(w, r)
+
+	if w.Result().StatusCode != http.StatusOK {
+		t.Fatalf("expected status 200, got: %d", w.Result().StatusCode)
+	}
+}
+
+func TestHandler_FuncLog_LogsBeforeActionAbort(t *testing.T) {
+	var loggedAbort bool
+	crud := newTestCrud()
+	crud.funcBeforeAction = func(w http.ResponseWriter, r *http.Request, action string) bool {
+		return false
+	}
+	crud.funcLog = func(level string, message string, attrs map[string]any) {
+		if message == "request aborted by before-action hook" {
+			loggedAbort = true
+		}
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-manager", nil)
+	w := httptest.NewRecorder()
+
+	crud.Handler(w, r)
+
+	if !loggedAbort {
+		t.Fatal("expected abort to be logged")
+	}
+}
+
+func TestHandler_FuncLog_LogsCSRFFailure(t *testing.T) {
+	var loggedCSRF bool
+	var loggedError string
+	crud := newTestCrud()
+	crud.funcValidateCSRF = func(r *http.Request) error {
+		return errors.New("bad token")
+	}
+	crud.funcLog = func(level string, message string, attrs map[string]any) {
+		if message == "CSRF validation failed" {
+			loggedCSRF = true
+			loggedError = attrs["error"].(string)
+		}
+	}
+
+	r := httptest.NewRequest(http.MethodPost, "/admin?path=entity-create-ajax", nil)
+	w := httptest.NewRecorder()
+
+	crud.Handler(w, r)
+
+	if !loggedCSRF {
+		t.Fatal("expected CSRF failure to be logged")
+	}
+	if loggedError != "bad token" {
+		t.Fatalf("expected error 'bad token', got: %s", loggedError)
+	}
+}
+
+// ==========================================================================
 // Layout tests
 // ==========================================================================
 

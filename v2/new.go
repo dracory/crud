@@ -44,6 +44,7 @@ func New(config Config) (crud Crud, err error) {
 	crud.funcBeforeAction = config.FuncBeforeAction
 	crud.funcAfterAction = config.FuncAfterAction
 	crud.funcValidateCSRF = config.FuncValidateCSRF
+	crud.funcLog = config.FuncLog
 
 	return crud, err
 }
