@@ -30,6 +30,8 @@ type Crud struct {
 	funcTrash           func(r *http.Request, entityID string) error
 	funcUpdate          func(r *http.Request, entityID string, data map[string]string) error
 	homeURL             string
+	createRedirectURL   string
+	updateRedirectURL   string
 	updateFields        []form.FieldInterface
 }
 
