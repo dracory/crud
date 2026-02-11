@@ -32,7 +32,7 @@ func (controller *entityReadController) page(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	breadcrumbs := controller.crud._breadcrumbs([]Breadcrumb{
+	breadcrumbs := controller.crud.renderBreadcrumbs([]Breadcrumb{
 		{
 			Name: "Home",
 			URL:  controller.crud.urlHome(),
@@ -129,7 +129,7 @@ func (controller *entityReadController) page(w http.ResponseWriter, r *http.Requ
 	title := "View " + controller.crud.entityNameSingular
 	html := controller.crud.layout(w, r, title, content, []string{}, "", []string{}, "")
 
-	w.WriteHeader(200)
 	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(200)
 	w.Write([]byte(html))
 }

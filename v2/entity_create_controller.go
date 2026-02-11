@@ -1,6 +1,7 @@
 package crud
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/dracory/bs"
@@ -25,6 +26,18 @@ func (controller *entityCreateController) modalShow(w http.ResponseWriter, r *ht
 }
 
 func (controller *entityCreateController) modalSave(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		response := hb.Swal(hb.SwalOptions{Icon: "error", Text: "Method not allowed"}).ToHTML()
+		w.Write([]byte(response))
+		return
+	}
+
+	if controller.crud.funcCreate == nil {
+		response := hb.Swal(hb.SwalOptions{Icon: "error", Text: "Create functionality is not configured"}).ToHTML()
+		w.Write([]byte(response))
+		return
+	}
+
 	names := controller.crud.listCreateNames()
 
 	posts := map[string]string{}
@@ -62,14 +75,15 @@ func (controller *entityCreateController) modalSave(w http.ResponseWriter, r *ht
 		return
 	}
 
-	redirectURL := controller.crud.UrlEntityUpdate() + "?entity_id=" + entityID
+	redirectURL := controller.crud.UrlEntityUpdate() + "&entity_id=" + entityID
+	redirectURLJson, _ := json.Marshal(redirectURL)
 	successMessage := "Saved successfully"
 	response := hb.Wrap().
 		Child(hb.Swal(hb.SwalOptions{
 			Icon: "success",
 			Text: successMessage,
 		})).
-		Child(hb.Script("setTimeout(() => {window.location.href = '" + redirectURL + "'}, 2000)")).
+		Child(hb.Script("setTimeout(() => {window.location.href = " + string(redirectURLJson) + "}, 2000)")).
 		ToHTML()
 
 	w.Write([]byte(response))
@@ -106,7 +120,7 @@ func (controller *entityCreateController) modal() hb.TagInterface {
 		Class("btn btn-primary float-end").
 		HxInclude("#" + modalID).
 		HxPost(submitUrl).
-		HxSelectOob("#ModalproductCreate").
+		HxSelectOob("#ModalEntityCreate").
 		HxTarget("body").
 		HxSwap("beforeend")
 
@@ -146,36 +160,3 @@ func (controller *entityCreateController) modal() hb.TagInterface {
 		backdrop,
 	})
 }
-
-// func (controller *entityCreateController) prepareDataAndValidate(r *http.Request) (data entityCreateControllerData, errorMessage string) {
-// 	// authUser := helpers.GetAuthUser(r)
-
-// 	// if authUser == nil {
-// 	// 	return data, "You are not logged in. Please login to continue."
-// 	// }
-
-// 	// data.formTitle = strings.TrimSpace(utils.Req(r, "product_title", ""))
-
-// 	// if r.Method != http.MethodPost {
-// 	// 	return data, ""
-// 	// }
-
-// 	// if data.formTitle == "" {
-// 	// 	return data, "product title is required"
-// 	// }
-
-// 	// product := shopstore.NewProduct()
-// 	// product.SetTitle(data.formTitle)
-
-// 	// err := config.ShopStore.ProductCreate(product)
-
-// 	// if err != nil {
-// 	// 	config.LogStore.ErrorWithContext("Error. At productCreateController > prepareDataAndValidate", err.Error())
-// 	// 	return data, "Creating product failed. Please contact an administrator."
-// 	// }
-
-// 	data.successMessage = "product created successfully."
-
-// 	return data, ""
-
-// }

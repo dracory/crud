@@ -28,7 +28,12 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	breadcrumbs := controller.crud._breadcrumbs([]Breadcrumb{
+	if controller.crud.funcFetchUpdateData == nil {
+		api.Respond(w, r, api.Error("Update functionality is not configured"))
+		return
+	}
+
+	breadcrumbs := controller.crud.renderBreadcrumbs([]Breadcrumb{
 		{
 			Name: "Home",
 			URL:  controller.crud.urlHome(),
@@ -70,17 +75,39 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 
 	content := container.ToHTML()
 
-	jsonCustomValues, _ := json.Marshal(customAttrValues)
+	jsonCustomValues, err := json.Marshal(customAttrValues)
+	if err != nil {
+		api.Respond(w, r, api.Error("Failed to encode form data"))
+		return
+	}
 
-	urlHome, _ := json.Marshal(controller.crud.endpoint)
-	urlEntityTrashAjax, _ := json.Marshal(controller.crud.UrlEntityTrashAjax())
-	urlEntityUpdateAjax, _ := json.Marshal(controller.crud.UrlEntityUpdateAjax())
+	urlHome, err := json.Marshal(controller.crud.endpoint)
+	if err != nil {
+		api.Respond(w, r, api.Error("Failed to encode URL"))
+		return
+	}
+	urlEntityTrashAjax, err := json.Marshal(controller.crud.UrlEntityTrashAjax())
+	if err != nil {
+		api.Respond(w, r, api.Error("Failed to encode URL"))
+		return
+	}
+	urlEntityUpdateAjax, err := json.Marshal(controller.crud.UrlEntityUpdateAjax())
+	if err != nil {
+		api.Respond(w, r, api.Error("Failed to encode URL"))
+		return
+	}
+
+	entityIDJson, err := json.Marshal(entityID)
+	if err != nil {
+		api.Respond(w, r, api.Error("Failed to encode entity ID"))
+		return
+	}
 
 	inlineScript := `
 	const entityManagerUrl = ` + string(urlHome) + `;
 	const entityUpdateUrl = ` + string(urlEntityUpdateAjax) + `;
 	const entityTrashUrl = ` + string(urlEntityTrashAjax) + `;
-	const entityId = "` + entityID + `";
+	const entityId = ` + string(entityIDJson) + `;
 	const customValues = ` + string(jsonCustomValues) + `;
 	const EntityUpdate = {
 		data() {
@@ -164,12 +191,17 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 		"https://cdn.jsdelivr.net/npm/element-plus",
 	}, inlineScript)
 
-	w.WriteHeader(200)
 	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(200)
 	w.Write([]byte(html))
 }
 
 func (controller *entityUpdateController) pageSave(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		api.Respond(w, r, api.Error("Method not allowed"))
+		return
+	}
+
 	entityID := req.GetStringTrimmed(r, "entity_id")
 
 	if entityID == "" {

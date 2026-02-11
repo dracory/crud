@@ -19,10 +19,20 @@ func (crud *Crud) newEntityTrashController() *entityTrashController {
 }
 
 func (controller *entityTrashController) pageEntityTrashAjax(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		api.Respond(w, r, api.Error("Method not allowed"))
+		return
+	}
+
 	entityID := req.GetStringTrimmed(r, "entity_id")
 
 	if entityID == "" {
 		api.Respond(w, r, api.Error("Entity ID is required"))
+		return
+	}
+
+	if controller.crud.funcTrash == nil {
+		api.Respond(w, r, api.Error("Trash functionality is not configured"))
 		return
 	}
 

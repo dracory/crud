@@ -11,10 +11,13 @@ func New(config Config) (crud Crud, err error) {
 		return Crud{}, errors.New("UpdateFields is required")
 	}
 
-	isUpdateEnabled := config.FuncUpdate != nil && config.FuncFetchUpdateData != nil && len(config.UpdateFields) > 0
-
-	if isUpdateEnabled && config.FuncUpdate == nil {
-		return Crud{}, errors.New("FuncUpdate function is required")
+	if len(config.UpdateFields) > 0 {
+		if config.FuncUpdate == nil {
+			return Crud{}, errors.New("FuncUpdate function is required when UpdateFields are provided")
+		}
+		if config.FuncFetchUpdateData == nil {
+			return Crud{}, errors.New("FuncFetchUpdateData function is required when UpdateFields are provided")
+		}
 	}
 
 	crud = Crud{}

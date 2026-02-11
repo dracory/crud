@@ -23,7 +23,7 @@ func (crud *Crud) newEntityManagerController() *entityManagerController {
 
 func (controller *entityManagerController) page(w http.ResponseWriter, r *http.Request) {
 	// header := cms.cmsHeader(endpoint)
-	breadcrumbs := controller.crud._breadcrumbs([]Breadcrumb{
+	breadcrumbs := controller.crud.renderBreadcrumbs([]Breadcrumb{
 		{
 			Name: "Home",
 			URL:  controller.crud.urlHome(),
@@ -136,15 +136,31 @@ func (controller *entityManagerController) page(w http.ResponseWriter, r *http.R
 
 	content := container.ToHTML()
 
-	urlEntityCreateAjax, _ := json.Marshal(controller.crud.UrlEntityCreateAjax())
-	urlEntityTrashAjax, _ := json.Marshal(controller.crud.UrlEntityTrashAjax())
-	urlEntityUpdate, _ := json.Marshal(controller.crud.UrlEntityUpdate())
+	urlEntityCreateAjax, err := json.Marshal(controller.crud.UrlEntityCreateAjax())
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	urlEntityTrashAjax, err := json.Marshal(controller.crud.UrlEntityTrashAjax())
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	urlEntityUpdate, err := json.Marshal(controller.crud.UrlEntityUpdate())
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 
 	customAttrValues := map[string]string{}
 	lo.ForEach(controller.crud.createFields, func(field form.FieldInterface, index int) {
 		customAttrValues[field.GetName()] = field.GetValue()
 	})
-	jsonCustomValues, _ := json.Marshal(customAttrValues)
+	jsonCustomValues, err := json.Marshal(customAttrValues)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 
 	inlineScript := `
 const entityCreateUrl = ` + string(urlEntityCreateAjax) + `;
@@ -206,7 +222,7 @@ const EntityManager = {
 				entity_id:entityId
 			}).done((response)=>{
 				if (response.status !== "success") {
-					return Swal.fire({icon: 'error', title: 'Oops...', text: result.message});
+					return Swal.fire({icon: 'error', title: 'Oops...', text: response.message});
 				}
 
 				setTimeout(()=>{return location.href = location.href;}, 3000)
@@ -228,7 +244,7 @@ Vue.createApp(EntityManager).mount('#entity-manager')
 		cdn.JqueryDataTablesJs_1_13_4(),
 	}, inlineScript)
 
-	w.WriteHeader(200)
 	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(200)
 	w.Write([]byte(html))
 }

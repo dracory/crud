@@ -41,7 +41,9 @@ func (crud Crud) Handler(w http.ResponseWriter, r *http.Request) {
 		path = pathHome
 	}
 
-	ctx := context.WithValue(r.Context(), "", r.URL.Path)
+	type contextKey string
+	const ctxKeyPath contextKey = "path"
+	ctx := context.WithValue(r.Context(), ctxKeyPath, r.URL.Path)
 
 	routeFunc := crud.getRoute(path)
 	routeFunc(w, r.WithContext(ctx))
@@ -66,34 +68,8 @@ func (crud *Crud) getRoute(route string) func(w http.ResponseWriter, r *http.Req
 	return routes[pathHome]
 }
 
-// func (crud *Crud) pageEntitiesEntityCreateModal() hb.TagInterface {
-// 	form := crud.form(crud.createFields)
-
-// 	modalHeader := hb.Div().Class("modal-header").
-// 		AddChild(hb.Heading5().Text("New " + crud.entityNameSingular))
-
-// 	modalBody := hb.Div().Class("modal-body").AddChildren(form)
-
-// 	modalFooter := hb.Div().Class("modal-footer").
-// 		AddChild(hb.Button().Text("Close").Class("btn btn-secondary").Attr("data-bs-dismiss", "modal")).
-// 		AddChild(hb.Button().Text("Create & Continue").Class("btn btn-primary").Attr("v-on:click", "entityCreate"))
-
-// 	modal := hb.Div().ID("ModalEntityCreate").Class("modal fade").AddChildren([]hb.TagInterface{
-// 		hb.Div().Class("modal-dialog").AddChildren([]hb.TagInterface{
-// 			hb.Div().Class("modal-content").AddChildren([]hb.TagInterface{
-// 				modalHeader,
-// 				modalBody,
-// 				modalFooter,
-// 			}),
-// 		}),
-// 	})
-
-// 	return modal
-// }
-
 func (crud *Crud) urlHome() string {
-	url := crud.homeURL
-	return url
+	return crud.homeURL
 }
 
 func (crud *Crud) UrlEntityManager() string {
@@ -158,7 +134,7 @@ func (crud *Crud) webpage(title, content string) *hb.HtmlWebpage {
 	webpage.AddScripts([]string{
 		app,
 	})
-	webpage.AddStyle(`html,body{height:100%;font-family: Ubuntu, sans-serif;}`)
+	webpage.AddStyle(`html,body{height:100%;}`)
 	webpage.AddStyle(`body {
 		font-family: "Nunito", sans-serif;
 		font-size: 0.9rem;
@@ -191,7 +167,7 @@ func (crud *Crud) webpage(title, content string) *hb.HtmlWebpage {
 	return webpage
 }
 
-func (crud *Crud) _breadcrumbs(breadcrumbs []Breadcrumb) string {
+func (crud *Crud) renderBreadcrumbs(breadcrumbs []Breadcrumb) string {
 	nav := hb.Nav().Attr("aria-label", "breadcrumb")
 	ol := hb.OL().Attr("class", "breadcrumb")
 
