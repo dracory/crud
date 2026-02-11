@@ -53,7 +53,7 @@ func TestRead_Page_NilFuncFetchReadData(t *testing.T) {
 
 func TestRead_Page_FetchDataError(t *testing.T) {
 	crud := newTestCrud()
-	crud.funcFetchReadData = func(entityID string) ([][2]string, error) {
+	crud.funcFetchReadData = func(r *http.Request, entityID string) ([][2]string, error) {
 		return nil, errors.New("read error")
 	}
 	ctrl := crud.newEntityReadController()
@@ -76,7 +76,7 @@ func TestRead_Page_FetchDataError(t *testing.T) {
 func TestRead_Page_Success(t *testing.T) {
 	var fetchedID string
 	crud := newTestCrud()
-	crud.funcFetchReadData = func(entityID string) ([][2]string, error) {
+	crud.funcFetchReadData = func(r *http.Request, entityID string) ([][2]string, error) {
 		fetchedID = entityID
 		return [][2]string{
 			{"Name", "Test Product"},
@@ -111,7 +111,7 @@ func TestRead_Page_Success(t *testing.T) {
 
 func TestRead_Page_RawKeyValueRendering(t *testing.T) {
 	crud := newTestCrud()
-	crud.funcFetchReadData = func(entityID string) ([][2]string, error) {
+	crud.funcFetchReadData = func(r *http.Request, entityID string) ([][2]string, error) {
 		return [][2]string{
 			{"{!!Name!!}", "{!!<b>Bold</b>!!}"},
 		}, nil

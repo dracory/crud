@@ -1,6 +1,7 @@
 package crud
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/dracory/form"
@@ -18,7 +19,7 @@ func TestNew_MissingFuncRows(t *testing.T) {
 
 func TestNew_MissingUpdateFields(t *testing.T) {
 	_, err := New(Config{
-		FuncRows: func() ([]Row, error) { return nil, nil },
+		FuncRows: func(r *http.Request) ([]Row, error) { return nil, nil },
 	})
 	if err == nil {
 		t.Fatal("expected error when UpdateFields is nil")
@@ -30,7 +31,7 @@ func TestNew_MissingUpdateFields(t *testing.T) {
 
 func TestNew_UpdateFieldsWithoutFuncUpdate(t *testing.T) {
 	_, err := New(Config{
-		FuncRows: func() ([]Row, error) { return nil, nil },
+		FuncRows: func(r *http.Request) ([]Row, error) { return nil, nil },
 		UpdateFields: []form.FieldInterface{
 			form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
 		},
@@ -45,11 +46,11 @@ func TestNew_UpdateFieldsWithoutFuncUpdate(t *testing.T) {
 
 func TestNew_UpdateFieldsWithoutFuncFetchUpdateData(t *testing.T) {
 	_, err := New(Config{
-		FuncRows: func() ([]Row, error) { return nil, nil },
+		FuncRows: func(r *http.Request) ([]Row, error) { return nil, nil },
 		UpdateFields: []form.FieldInterface{
 			form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
 		},
-		FuncUpdate: func(entityID string, data map[string]string) error { return nil },
+		FuncUpdate: func(r *http.Request, entityID string, data map[string]string) error { return nil },
 	})
 	if err == nil {
 		t.Fatal("expected error when UpdateFields provided without FuncFetchUpdateData")
@@ -61,7 +62,7 @@ func TestNew_UpdateFieldsWithoutFuncFetchUpdateData(t *testing.T) {
 
 func TestNew_EmptyUpdateFieldsNoFuncUpdateRequired(t *testing.T) {
 	_, err := New(Config{
-		FuncRows:     func() ([]Row, error) { return nil, nil },
+		FuncRows:     func(r *http.Request) ([]Row, error) { return nil, nil },
 		UpdateFields: []form.FieldInterface{},
 	})
 	if err != nil {
@@ -76,9 +77,9 @@ func TestNew_ValidFullConfig(t *testing.T) {
 		EntityNamePlural:   "Products",
 		HomeURL:            "/",
 		ColumnNames:        []string{"ID", "Name"},
-		FuncRows:           func() ([]Row, error) { return nil, nil },
-		FuncUpdate:         func(entityID string, data map[string]string) error { return nil },
-		FuncFetchUpdateData: func(entityID string) (map[string]string, error) {
+		FuncRows:           func(r *http.Request) ([]Row, error) { return nil, nil },
+		FuncUpdate:         func(r *http.Request, entityID string, data map[string]string) error { return nil },
+		FuncFetchUpdateData: func(r *http.Request, entityID string) (map[string]string, error) {
 			return map[string]string{}, nil
 		},
 		UpdateFields: []form.FieldInterface{
@@ -120,9 +121,9 @@ func TestNew_ConfigFieldsAreCopied(t *testing.T) {
 	}
 
 	crud, err := New(Config{
-		FuncRows:            func() ([]Row, error) { return nil, nil },
-		FuncUpdate:          func(entityID string, data map[string]string) error { return nil },
-		FuncFetchUpdateData: func(entityID string) (map[string]string, error) { return nil, nil },
+		FuncRows:            func(r *http.Request) ([]Row, error) { return nil, nil },
+		FuncUpdate:          func(r *http.Request, entityID string, data map[string]string) error { return nil },
+		FuncFetchUpdateData: func(r *http.Request, entityID string) (map[string]string, error) { return nil, nil },
 		CreateFields:        createFields,
 		ReadFields:          readFields,
 		UpdateFields:        updateFields,

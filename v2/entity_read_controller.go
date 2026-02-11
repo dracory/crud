@@ -70,7 +70,7 @@ func (controller *entityReadController) page(w http.ResponseWriter, r *http.Requ
 		Child(heading).
 		Child(hb.Raw(breadcrumbs))
 
-	data, err := controller.crud.funcFetchReadData(entityID)
+	data, err := controller.crud.funcFetchReadData(r, entityID)
 
 	table := lo.IfF(err != nil, func() hb.TagInterface {
 		alert := hb.Div().
@@ -123,7 +123,7 @@ func (controller *entityReadController) page(w http.ResponseWriter, r *http.Requ
 
 	container.Child(card)
 	if controller.crud.funcReadExtras != nil {
-		container.Children(controller.crud.funcReadExtras(entityID))
+		container.Children(controller.crud.funcReadExtras(r, entityID))
 	}
 	content := container.ToHTML()
 	title := "View " + controller.crud.entityNameSingular

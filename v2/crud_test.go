@@ -215,7 +215,7 @@ func newTestCrud() Crud {
 		entityNamePlural:   "Products",
 		homeURL:            "/",
 		columnNames:        []string{"ID", "Name"},
-		funcRows:           func() ([]Row, error) { return []Row{}, nil },
+		funcRows:           func(r *http.Request) ([]Row, error) { return []Row{}, nil },
 		updateFields:       []form.FieldInterface{},
 	}
 }

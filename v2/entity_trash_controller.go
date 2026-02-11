@@ -36,7 +36,7 @@ func (controller *entityTrashController) pageEntityTrashAjax(w http.ResponseWrit
 		return
 	}
 
-	err := controller.crud.funcTrash(entityID)
+	err := controller.crud.funcTrash(r, entityID)
 
 	if err != nil {
 		api.Respond(w, r, api.Error("Entity failed to be trashed: "+err.Error()))

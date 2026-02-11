@@ -78,7 +78,7 @@ func TestTrash_NilFuncTrash(t *testing.T) {
 
 func TestTrash_FuncTrashReturnsError(t *testing.T) {
 	crud := newTestCrud()
-	crud.funcTrash = func(entityID string) error {
+	crud.funcTrash = func(r *http.Request, entityID string) error {
 		return errors.New("database error")
 	}
 	ctrl := crud.newEntityTrashController()
@@ -104,7 +104,7 @@ func TestTrash_FuncTrashReturnsError(t *testing.T) {
 func TestTrash_Success(t *testing.T) {
 	var trashedID string
 	crud := newTestCrud()
-	crud.funcTrash = func(entityID string) error {
+	crud.funcTrash = func(r *http.Request, entityID string) error {
 		trashedID = entityID
 		return nil
 	}

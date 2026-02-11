@@ -12,7 +12,7 @@ import (
 
 func TestManager_Page_Success(t *testing.T) {
 	crud := newTestCrud()
-	crud.funcRows = func() ([]Row, error) {
+	crud.funcRows = func(r *http.Request) ([]Row, error) {
 		return []Row{
 			{ID: "1", Data: []string{"1", "Product A"}},
 			{ID: "2", Data: []string{"2", "Product B"}},
@@ -43,7 +43,7 @@ func TestManager_Page_Success(t *testing.T) {
 
 func TestManager_Page_FuncRowsError(t *testing.T) {
 	crud := newTestCrud()
-	crud.funcRows = func() ([]Row, error) {
+	crud.funcRows = func(r *http.Request) ([]Row, error) {
 		return nil, errors.New("database error")
 	}
 	ctrl := crud.newEntityManagerController()
@@ -65,7 +65,7 @@ func TestManager_Page_FuncRowsError(t *testing.T) {
 
 func TestManager_Page_EmptyRows(t *testing.T) {
 	crud := newTestCrud()
-	crud.funcRows = func() ([]Row, error) {
+	crud.funcRows = func(r *http.Request) ([]Row, error) {
 		return []Row{}, nil
 	}
 	ctrl := crud.newEntityManagerController()
@@ -132,16 +132,16 @@ func TestManager_Page_ContentTypeHeader(t *testing.T) {
 
 func TestManager_Page_ShowsActionButtons(t *testing.T) {
 	crud := newTestCrud()
-	crud.funcFetchReadData = func(entityID string) ([][2]string, error) {
+	crud.funcFetchReadData = func(r *http.Request, entityID string) ([][2]string, error) {
 		return nil, nil
 	}
-	crud.funcFetchUpdateData = func(entityID string) (map[string]string, error) {
+	crud.funcFetchUpdateData = func(r *http.Request, entityID string) (map[string]string, error) {
 		return nil, nil
 	}
-	crud.funcTrash = func(entityID string) error {
+	crud.funcTrash = func(r *http.Request, entityID string) error {
 		return nil
 	}
-	crud.funcRows = func() ([]Row, error) {
+	crud.funcRows = func(r *http.Request) ([]Row, error) {
 		return []Row{
 			{ID: "1", Data: []string{"1", "Product A"}},
 		}, nil
@@ -170,7 +170,7 @@ func TestManager_Page_HidesActionButtonsWhenFuncsNil(t *testing.T) {
 	crud.funcFetchReadData = nil
 	crud.funcFetchUpdateData = nil
 	crud.funcTrash = nil
-	crud.funcRows = func() ([]Row, error) {
+	crud.funcRows = func(r *http.Request) ([]Row, error) {
 		return []Row{
 			{ID: "1", Data: []string{"1", "Product A"}},
 		}, nil

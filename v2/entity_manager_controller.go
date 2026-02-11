@@ -53,7 +53,7 @@ func (controller *entityManagerController) page(w http.ResponseWriter, r *http.R
 		HTML(controller.crud.entityNameSingular + " Manager").
 		Child(buttonCreate)
 
-	rows, errRows := controller.crud.funcRows()
+	rows, errRows := controller.crud.funcRows(r)
 
 	tableContent := lo.IfF(errRows != nil, func() hb.TagInterface {
 		alert := hb.Div().

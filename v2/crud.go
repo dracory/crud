@@ -21,14 +21,14 @@ type Crud struct {
 	entityNamePlural    string
 	entityNameSingular  string
 	fileManagerURL      string
-	funcCreate          func(data map[string]string) (userID string, err error)
-	funcReadExtras      func(entityID string) []hb.TagInterface
-	funcFetchReadData   func(entityID string) ([][2]string, error)
-	funcFetchUpdateData func(entityID string) (map[string]string, error)
+	funcCreate          func(r *http.Request, data map[string]string) (userID string, err error)
+	funcReadExtras      func(r *http.Request, entityID string) []hb.TagInterface
+	funcFetchReadData   func(r *http.Request, entityID string) ([][2]string, error)
+	funcFetchUpdateData func(r *http.Request, entityID string) (map[string]string, error)
 	funcLayout          func(w http.ResponseWriter, r *http.Request, title string, content string, styleFiles []string, style string, jsFiles []string, js string) string
-	funcRows            func() (rows []Row, err error)
-	funcTrash           func(entityID string) error
-	funcUpdate          func(entityID string, data map[string]string) error
+	funcRows            func(r *http.Request) (rows []Row, err error)
+	funcTrash           func(r *http.Request, entityID string) error
+	funcUpdate          func(r *http.Request, entityID string, data map[string]string) error
 	homeURL             string
 	readFields          []form.FieldInterface
 	updateFields        []form.FieldInterface

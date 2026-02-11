@@ -66,7 +66,7 @@ func (controller *entityCreateController) modalSave(w http.ResponseWriter, r *ht
 		}
 	}
 
-	entityID, err := controller.crud.funcCreate(posts)
+	entityID, err := controller.crud.funcCreate(r, posts)
 
 	if err != nil {
 		errorMessage := "Save failed: " + err.Error()

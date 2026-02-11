@@ -56,7 +56,7 @@ func TestUpdate_Page_NilFuncFetchUpdateData(t *testing.T) {
 
 func TestUpdate_Page_FetchDataError(t *testing.T) {
 	crud := newTestCrud()
-	crud.funcFetchUpdateData = func(entityID string) (map[string]string, error) {
+	crud.funcFetchUpdateData = func(r *http.Request, entityID string) (map[string]string, error) {
 		return nil, errors.New("fetch failed")
 	}
 	ctrl := crud.newEntityUpdateController()
@@ -85,7 +85,7 @@ func TestUpdate_Page_Success(t *testing.T) {
 			Type:  FORM_FIELD_TYPE_STRING,
 		}),
 	}
-	crud.funcFetchUpdateData = func(entityID string) (map[string]string, error) {
+	crud.funcFetchUpdateData = func(r *http.Request, entityID string) (map[string]string, error) {
 		return map[string]string{"title": "Existing Product"}, nil
 	}
 	ctrl := crud.newEntityUpdateController()
@@ -153,7 +153,7 @@ func TestUpdate_PageSave_RequiredFieldEmpty(t *testing.T) {
 			Required: true,
 		}),
 	}
-	crud.funcUpdate = func(entityID string, data map[string]string) error { return nil }
+	crud.funcUpdate = func(r *http.Request, entityID string, data map[string]string) error { return nil }
 	ctrl := crud.newEntityUpdateController()
 
 	formData := url.Values{}
@@ -184,7 +184,7 @@ func TestUpdate_PageSave_FuncUpdateError(t *testing.T) {
 			Type:  FORM_FIELD_TYPE_STRING,
 		}),
 	}
-	crud.funcUpdate = func(entityID string, data map[string]string) error {
+	crud.funcUpdate = func(r *http.Request, entityID string, data map[string]string) error {
 		return errors.New("update failed")
 	}
 	ctrl := crud.newEntityUpdateController()
@@ -219,7 +219,7 @@ func TestUpdate_PageSave_Success(t *testing.T) {
 			Type:  FORM_FIELD_TYPE_STRING,
 		}),
 	}
-	crud.funcUpdate = func(entityID string, data map[string]string) error {
+	crud.funcUpdate = func(r *http.Request, entityID string, data map[string]string) error {
 		savedID = entityID
 		savedData = data
 		return nil

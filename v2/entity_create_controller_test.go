@@ -52,7 +52,7 @@ func TestCreate_ModalSave_RequiredFieldEmpty(t *testing.T) {
 			Required: true,
 		}),
 	}
-	crud.funcCreate = func(data map[string]string) (string, error) {
+	crud.funcCreate = func(r *http.Request, data map[string]string) (string, error) {
 		return "new-id", nil
 	}
 	ctrl := crud.newEntityCreateController()
@@ -80,7 +80,7 @@ func TestCreate_ModalSave_FuncCreateError(t *testing.T) {
 			Type:  FORM_FIELD_TYPE_STRING,
 		}),
 	}
-	crud.funcCreate = func(data map[string]string) (string, error) {
+	crud.funcCreate = func(r *http.Request, data map[string]string) (string, error) {
 		return "", errors.New("save error")
 	}
 	ctrl := crud.newEntityCreateController()
@@ -109,7 +109,7 @@ func TestCreate_ModalSave_Success(t *testing.T) {
 			Type:  FORM_FIELD_TYPE_STRING,
 		}),
 	}
-	crud.funcCreate = func(data map[string]string) (string, error) {
+	crud.funcCreate = func(r *http.Request, data map[string]string) (string, error) {
 		receivedData = data
 		return "new-entity-id", nil
 	}

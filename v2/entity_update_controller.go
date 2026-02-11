@@ -64,7 +64,7 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 		AddChild(heading).
 		AddChild(hb.Raw(breadcrumbs))
 
-	customAttrValues, errData := controller.crud.funcFetchUpdateData(entityID)
+	customAttrValues, errData := controller.crud.funcFetchUpdateData(r, entityID)
 
 	if errData != nil {
 		api.Respond(w, r, api.Error("Fetch data failed"))
@@ -232,7 +232,7 @@ func (controller *entityUpdateController) pageSave(w http.ResponseWriter, r *htt
 		}
 	}
 
-	err := controller.crud.funcUpdate(entityID, posts)
+	err := controller.crud.funcUpdate(r, entityID, posts)
 
 	if err != nil {
 		api.Respond(w, r, api.Error("Save failed: "+err.Error()))
