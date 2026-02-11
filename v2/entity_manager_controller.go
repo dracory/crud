@@ -3,11 +3,13 @@ package crud
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/dracory/cdn"
 	"github.com/dracory/form"
 	"github.com/dracory/hb"
+	"github.com/dracory/req"
 	"github.com/samber/lo"
 )
 
@@ -133,6 +135,18 @@ func (controller *entityManagerController) page(w http.ResponseWriter, r *http.R
 		// Child(crud.pageEntitiesEntityCreateModal()).
 		Child(controller.crud.newEntityTrashController().pageEntitiesEntityTrashModal()).
 		Child(tableContent)
+
+	if controller.crud.pageSize > 0 && controller.crud.funcRowsCount != nil {
+		currentPage, _ := strconv.Atoi(req.GetString(r, "page"))
+		if currentPage < 1 {
+			currentPage = 1
+		}
+		totalRows, errCount := controller.crud.funcRowsCount(r)
+		if errCount == nil {
+			paginationHTML := controller.crud.renderPagination(currentPage, totalRows, controller.crud.UrlEntityManager())
+			container.Child(hb.Raw(paginationHTML))
+		}
+	}
 
 	content := container.ToHTML()
 

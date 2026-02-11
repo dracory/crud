@@ -26,6 +26,8 @@ type Config struct {
 	UpdateRedirectURL   string
 	UpdateFields        []form.FieldInterface
 	FuncReadExtras      func(r *http.Request, entityID string) []hb.TagInterface
+	PageSize            int
+	FuncRowsCount       func(r *http.Request) (int64, error)
 	FuncBeforeAction    func(w http.ResponseWriter, r *http.Request, action string) bool
 	FuncAfterAction     func(w http.ResponseWriter, r *http.Request, action string)
 	FuncValidateCSRF    func(r *http.Request) error

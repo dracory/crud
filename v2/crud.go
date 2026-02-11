@@ -34,6 +34,8 @@ type Crud struct {
 	createRedirectURL   string
 	updateRedirectURL   string
 	updateFields        []form.FieldInterface
+	pageSize            int
+	funcRowsCount       func(r *http.Request) (int64, error)
 	funcBeforeAction    func(w http.ResponseWriter, r *http.Request, action string) bool
 	funcAfterAction     func(w http.ResponseWriter, r *http.Request, action string)
 	funcValidateCSRF    func(r *http.Request) error

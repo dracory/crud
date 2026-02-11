@@ -193,3 +193,78 @@ func TestManager_Page_HidesActionButtonsWhenFuncsNil(t *testing.T) {
 		t.Fatal("expected no trash button when funcTrash is nil")
 	}
 }
+
+func TestManager_Page_PaginationRendered(t *testing.T) {
+	crud := newTestCrud()
+	crud.pageSize = 10
+	crud.funcRowsCount = func(r *http.Request) (int64, error) {
+		return 50, nil
+	}
+	crud.funcRows = func(r *http.Request) ([]Row, error) {
+		return []Row{
+			{ID: "1", Data: []string{"1", "Product A"}},
+		}, nil
+	}
+	ctrl := crud.newEntityManagerController()
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-manager&page=2", nil)
+	w := httptest.NewRecorder()
+
+	ctrl.page(w, r)
+
+	body := w.Body.String()
+	if !strings.Contains(body, "pagination") {
+		t.Fatal("expected pagination controls in output")
+	}
+	if !strings.Contains(body, "page=1") {
+		t.Fatal("expected page=1 link in pagination")
+	}
+	if !strings.Contains(body, "page=3") {
+		t.Fatal("expected page=3 link in pagination")
+	}
+}
+
+func TestManager_Page_NoPaginationWhenPageSizeZero(t *testing.T) {
+	crud := newTestCrud()
+	crud.pageSize = 0
+	crud.funcRows = func(r *http.Request) ([]Row, error) {
+		return []Row{
+			{ID: "1", Data: []string{"1", "Product A"}},
+		}, nil
+	}
+	ctrl := crud.newEntityManagerController()
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-manager", nil)
+	w := httptest.NewRecorder()
+
+	ctrl.page(w, r)
+
+	body := w.Body.String()
+	if strings.Contains(body, "pagination") {
+		t.Fatal("expected no pagination when pageSize is 0")
+	}
+}
+
+func TestManager_Page_NoPaginationWhenSinglePage(t *testing.T) {
+	crud := newTestCrud()
+	crud.pageSize = 10
+	crud.funcRowsCount = func(r *http.Request) (int64, error) {
+		return 5, nil
+	}
+	crud.funcRows = func(r *http.Request) ([]Row, error) {
+		return []Row{
+			{ID: "1", Data: []string{"1", "Product A"}},
+		}, nil
+	}
+	ctrl := crud.newEntityManagerController()
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-manager", nil)
+	w := httptest.NewRecorder()
+
+	ctrl.page(w, r)
+
+	body := w.Body.String()
+	if strings.Contains(body, "pagination") {
+		t.Fatal("expected no pagination when total rows fit in one page")
+	}
+}
