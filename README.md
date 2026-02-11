@@ -1,94 +1,75 @@
-# CRUD <a href="https://gitpod.io/#https://github.com/dracory/crud" style="float:right;"><img src="https://gitpod.io/button/open-in-gitpod.svg" alt="Open in Gitpod" loading="lazy"></a>
+# CRUD
 
-![tests](https://github.com/dracory/crud/workflows/tests/badge.svg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/dracory/crud)](https://goreportcard.com/report/github.com/dracory/crud)
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/dracory/crud)](https://pkg.go.dev/github.com/dracory/crud)
+A server-side rendered CRUD (Create, Read, Update, Trash) interface for Go web applications. Generates Bootstrap 5 admin pages with Vue.js 3 interactivity for managing entities.
 
-A "plug-and-play" CRUD interface for GoLang that does its job and stays out of your way.
+## Versions
 
-Compatible with https://github.com/gouniverse/dashboard to create dashboards fast.
+### v2 (Current)
 
-## Screenshots
-<img src="./screenshots/Screenshot_20230712.png" />
+The recommended version with improved security, validation, and code quality.
 
-## Usage
-
-Create a handler like the example bellow, and attach to your router
+```bash
+go get github.com/dracory/crud/v2
+```
 
 ```go
-fieldsCreate := []crud.FormField{
-	{
-		Type:  "string",
-		Label: "Name",
-		Name:  "name",
-	},
-}
-
-fieldsUpdate := []crud.FormField{
-	{
-		Type:  "string",
-		Label: "First Name",
-		Name:  "first_name",
-	},
-	{
-		Type:  "string",
-		Label: "Last Name",
-		Name:  "last_name",
-	},
-}
-
-func crudHandler(w http.ResponseWriter, r *http.Request) {
-	crudInstance, err := crud.NewCrud(crud.CrudConfig{
-		Endpoint:           "/crud",
-		HomeURL:            "/",
-		EntityNameSingular: "User",
-		EntityNamePlural:   "Users",
-		ColumnNames:        []string{"First Name", "Last Name"},
-		CreateFields: fieldsCreate,
-		UpdateFields: fieldsUpdate,
-		FuncRows: func() ([]crud.Row, error) {
-                        // Your logic for fetching your users from DB
-			return []crud.Row{
-				{
-					ID:   "ID1",
-					Data: []string{"Jon", "Doe"},
-				},
-				{
-					ID:   "ID2",
-					Data: []string{"Sarah", "Smith"},
-				},
-				{
-					ID:   "ID3",
-					Data: []string{"Tom", "Sawyer"},
-				},
-			}, nil
-		},
-		FuncCreate: func(data map[string]string) (string, error) {
-			// Your logic for creating a new user in DB
-			return "ID4", nil
-		},
-		FuncUpdate: func(entityID string, data map[string]string) error {
-			// Your Logic for updating an existing user in DB
-			return nil
-		},
-		FuncTrash: func(entityID string) error {
-			// Your logic for deleting an existing user in DB
-			return nil
-		},
-		FuncFetchUpdateData: func(entityID string) (map[string]string, error) {
-			// Your logic for fetching an existing user from DB
-			return map[string]string{
-				"first_name": "Charles",
-				"last_name": "Dickens",
-			}, nil
-		},
-	})
-
-	if err != nil {
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	crudInstance.Handler(w, r)
-}
+import crud "github.com/dracory/crud/v2"
 ```
+
+Key improvements over v1:
+
+- **Security** — XSS prevention via JSON-encoded inline JS values, HTTP method enforcement on mutating endpoints, nil safety on all callbacks
+- **Architecture** — Controller-based routing, separated concerns across dedicated files
+- **Form system** — Uses `github.com/dracory/form` package with 11 field types
+- **HTMX integration** — Create modal loaded via HTMX instead of inline Vue.js
+- **Comprehensive tests** — 56 tests covering all controllers, validation, routing, and rendering
+
+See [`v2/README.md`](v2/README.md) for full documentation, quick start example, and API reference.
+
+### v1 (Legacy)
+
+The original implementation. Use v1 only if you have an existing project that depends on it.
+
+```bash
+go get github.com/dracory/crud
+```
+
+```go
+import "github.com/dracory/crud"
+```
+
+See [`v1/README.md`](v1/README.md) for usage instructions.
+
+> **Note:** v1 is no longer actively maintained. New projects should use v2.
+
+## Documentation
+
+Detailed documentation covering both versions is available in the [`docs/`](docs/) folder:
+
+- [Overview](docs/overview.md) — Package architecture, core types, frontend stack, dependencies, and security model
+- [Configuration](docs/configuration.md) — `Config` struct reference, `New()` validation rules, callback function signatures
+- [Controllers](docs/controllers.md) — Endpoint routing, controller behavior, request/response formats
+- [Form Fields](docs/form-fields.md) — Field type constants, options reference, Vue.js integration
+- [URL Helpers](docs/url-helpers.md) — URL generation methods and route path constants
+- [Layout and Templates](docs/layout-and-templates.md) — Layout rendering, breadcrumbs, default webpage template
+
+## Project Structure
+
+```
+crud/
+├── docs/          # Shared documentation
+├── v1/            # Legacy version (original implementation)
+│   ├── README.md
+│   ├── go.mod
+│   └── ...
+├── v2/            # Current version (recommended)
+│   ├── README.md
+│   ├── go.mod
+│   └── ...
+├── .gitignore
+└── README.md      # This file
+```
+
+## License
+
+See the repository for license information.
