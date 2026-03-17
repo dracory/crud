@@ -5,7 +5,6 @@ import (
 
 	"github.com/dracory/api"
 	"github.com/dracory/bs"
-	"github.com/dracory/form"
 	"github.com/dracory/hb"
 	"github.com/dracory/req"
 	"github.com/samber/lo"
@@ -75,18 +74,14 @@ func (controller *entityCreateController) modalSave(w http.ResponseWriter, r *ht
 }
 
 func (controller *entityCreateController) modal() hb.TagInterface {
-	form := form.NewForm(form.FormOptions{
-		Fields: controller.crud.createFields,
-	}).Build()
-
-	//controller.crud.form(controller.crud.createFields)
+	formFields := controller.crud.form(controller.crud.createFields)
 
 	submitUrl := controller.crud.UrlEntityCreateAjax()
 
 	modalID := "ModalEntityCreate"
 	modalBackdropClass := "ModalBackdrop"
 
-	modalCloseScript := `closeModal` + modalID + `();`
+	modalCloseScript := "closeModal" + modalID + "();"
 
 	modalHeading := hb.Heading5().
 		Text("New " + controller.crud.entityNameSingular).
@@ -97,26 +92,27 @@ func (controller *entityCreateController) modal() hb.TagInterface {
 		Data("bs-dismiss", "modal").
 		OnClick(modalCloseScript)
 
-	jsCloseFn := `function closeModal` + modalID + `() {document.getElementById('ModalEntityCreate').remove();[...document.getElementsByClassName('` + modalBackdropClass + `')].forEach(el => el.remove());}`
+	jsCloseFn := "function closeModal" + modalID + "() {document.getElementById('" + modalID + "Wrapper').remove();[...document.getElementsByClassName('" + modalBackdropClass + "')].forEach(el => el.remove());}"
 
-	jsSubmitFn := `function submitModal` + modalID + `() {
-		const form = document.querySelector('#` + modalID + ` form');
-		const formData = new FormData(form);
-		fetch('` + submitUrl + `', {method:'POST', body: formData})
+	jsVueApp := `
+const EntityCreate = {
+	data() {
+		return { entityModel: {} }
+	},
+	methods: {
+		submitModalModalEntityCreate() {
+			const data = JSON.parse(JSON.stringify(this.entityModel));
+			fetch('` + submitUrl + `', {
+				method: 'POST',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify(data)
+			})
 			.then(r => r.json())
 			.then(result => {
 				if (result.status === 'success') {
-					if (result.data && result.data.redirect_url) { 
-						Swal.fire({
-							icon:'success', 
-							title:'Saved successfully',
-							position:'top-left',
-							showConfirmButton:false,
-							timer:3000,
-							timerProgressBar:true
-						}).then(() => {
-							window.location.href = result.data.redirect_url; 
-						});
+					if (result.data && result.data.redirect_url) {
+						Swal.fire({icon:'success', title:'Saved successfully', position:'top-left', showConfirmButton:false, timer:3000, timerProgressBar:true})
+							.then(() => { window.location.href = result.data.redirect_url; });
 					} else {
 						Swal.fire({icon:'success', title:'Saved successfully'});
 					}
@@ -125,13 +121,26 @@ func (controller *entityCreateController) modal() hb.TagInterface {
 				}
 			})
 			.catch(err => { Swal.fire({icon:'error', title:'Oops...', text: err.toString()}); });
-	}`
+		},
+		addRepeaterItem(fieldName){
+			if (!this.entityModel[fieldName]) { this.entityModel[fieldName] = []; }
+			this.entityModel[fieldName].push({});
+		},
+		removeRepeaterItem(fieldName, index){
+			if (this.entityModel[fieldName] && this.entityModel[fieldName].length > 0) {
+				this.entityModel[fieldName].splice(index, 1);
+			}
+		}
+	}
+};
+Vue.createApp(EntityCreate).mount('#ModalEntityCreateWrapper');
+`
 
 	buttonSubmit := hb.Button().
 		Child(hb.I().Class("bi bi-check me-2")).
 		HTML("Create & Edit").
 		Class("btn btn-primary float-end").
-		OnClick("submitModal" + modalID + "()")
+		Attr("v-on:click", "submitModalModalEntityCreate()")
 
 	buttonCancel := hb.Button().
 		Child(hb.I().Class("bi bi-chevron-left me-2")).
@@ -140,12 +149,12 @@ func (controller *entityCreateController) modal() hb.TagInterface {
 		Data("bs-dismiss", "modal").
 		OnClick(modalCloseScript)
 
+	formContainer := hb.Div().Children(formFields)
+
 	modal := bs.Modal().
 		ID(modalID).
 		Class("fade show").
 		Style(`display:block;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1051;`).
-		Child(hb.Script(jsCloseFn)).
-		Child(hb.Script(jsSubmitFn)).
 		Child(bs.ModalDialog().
 			Child(bs.ModalContent().
 				Child(
@@ -154,7 +163,7 @@ func (controller *entityCreateController) modal() hb.TagInterface {
 						Child(modalClose)).
 				Child(
 					bs.ModalBody().
-						Child(form)).
+						Child(formContainer)).
 				Child(bs.ModalFooter().
 					Style(`display:flex;justify-content:space-between;`).
 					Child(buttonCancel).
@@ -165,8 +174,12 @@ func (controller *entityCreateController) modal() hb.TagInterface {
 		Class("modal-backdrop fade show").
 		Style("display:block;z-index:1000;")
 
-	return hb.Wrap().Children([]hb.TagInterface{
-		modal,
-		backdrop,
-	})
+	return hb.Div().
+		ID(modalID + "Wrapper").
+		Children([]hb.TagInterface{
+			hb.Script(jsCloseFn),
+			modal,
+			backdrop,
+			hb.Script(jsVueApp),
+		})
 }

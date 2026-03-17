@@ -201,6 +201,17 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 					};       
 					FR.readAsDataURL( event.target.files[0] );
 				}
+			},
+			addRepeaterItem(fieldName){
+				if (!this.entityModel[fieldName]) {
+					this.entityModel[fieldName] = [];
+				}
+				this.entityModel[fieldName].push({});
+			},
+			removeRepeaterItem(fieldName, index){
+				if (this.entityModel[fieldName] && this.entityModel[fieldName].length > 0) {
+					this.entityModel[fieldName].splice(index, 1);
+				}
 			}
 		}
 	};
