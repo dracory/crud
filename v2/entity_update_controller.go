@@ -71,7 +71,26 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	container.AddChildren(controller.crud.form(controller.crud.updateFields))
+	formFields := controller.crud.form(controller.crud.updateFields)
+
+	// Add bottom buttons container
+	buttonCancel := hb.Button().Class("btn btn-secondary").Attr("onclick", "window.location.href='"+controller.crud.UrlEntityManager()+"'").
+		AddChild(hb.I().Class("bi bi-chevron-left me-2")).
+		HTML("Cancel")
+
+	bottomButtons := hb.Div().
+		Class("row mt-4 mb-4").
+		Child(hb.Div().
+			Class("col-12").
+			Child(hb.Div().
+				Class("d-flex justify-content-between").
+				Child(buttonCancel).
+				Child(hb.Div().Class("d-flex gap-2").
+					Child(buttonApply).
+					Child(buttonSave))))
+
+	container.AddChildren(formFields)
+	container.AddChild(bottomButtons)
 
 	content := container.ToHTML()
 
@@ -154,12 +173,19 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 					}
 
 					if (redirect===true) {
-						setTimeout(()=>{
+						Swal.fire({
+							icon:'success', 
+							title:'Saved successfully',
+							position:'top-left',
+							showConfirmButton:false,
+							timer:3000,
+							timerProgressBar:true
+						}).then(() => {
 							window.location.href=entityManagerUrl;
-						}, 3000)
+						});
+					} else {
+						return Swal.fire({icon: 'success',title: 'Entity saved'});
 					}
-
-					return Swal.fire({icon: 'success',title: 'Entity saved'});
 				}).fail((result)=>{
 					console.log(result);
 					return Swal.fire({icon: 'error', title: 'Oops...', text: result});
