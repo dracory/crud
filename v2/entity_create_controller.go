@@ -106,9 +106,20 @@ func (controller *entityCreateController) modal() hb.TagInterface {
 			.then(r => r.json())
 			.then(result => {
 				if (result.status === 'success') {
-					Swal.fire({icon:'success', title:'Saved successfully'}).then(() => {
-						if (result.data && result.data.redirect_url) { window.location.href = result.data.redirect_url; }
-					});
+					if (result.data && result.data.redirect_url) { 
+						Swal.fire({
+							icon:'success', 
+							title:'Saved successfully',
+							position:'top-left',
+							showConfirmButton:false,
+							timer:3000,
+							timerProgressBar:true
+						}).then(() => {
+							window.location.href = result.data.redirect_url; 
+						});
+					} else {
+						Swal.fire({icon:'success', title:'Saved successfully'});
+					}
 				} else {
 					Swal.fire({icon:'error', title:'Oops...', text: result.message});
 				}
