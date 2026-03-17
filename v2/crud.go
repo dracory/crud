@@ -2,6 +2,7 @@ package crud
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -457,10 +458,27 @@ func (crud *Crud) validateRepeaterFields(data map[string]string, fields []form.F
 				continue
 			}
 			
-			// Check if repeater field has at least one item
-			// Repeater fields are stored as JSON arrays in the data
-			if data[fieldName] == "" || data[fieldName] == "[]" {
+			fieldValue := data[fieldName]
+			
+			// Check for empty or whitespace-only values
+			if fieldValue == "" || strings.TrimSpace(fieldValue) == "" {
 				return fmt.Errorf("%s is required field", field.GetLabel())
+			}
+			
+			// Check for empty array
+			if fieldValue == "[]" {
+				return fmt.Errorf("%s is required field", field.GetLabel())
+			}
+			
+			// For required fields, we need at least one item
+			// Try to parse as JSON to validate structure
+			trimmedValue := strings.TrimSpace(fieldValue)
+			if strings.HasPrefix(trimmedValue, "[") && strings.HasSuffix(trimmedValue, "]") {
+				// It looks like a JSON array, but we'll accept it as valid for now
+				// The actual JSON parsing will be handled by the application logic
+			} else {
+				// Not a JSON array format, consider it invalid for repeater fields
+				return fmt.Errorf("%s must be a valid JSON array", field.GetLabel())
 			}
 		}
 	}
