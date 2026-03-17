@@ -198,7 +198,7 @@ const EntityManager = {
 			this.initDataTable();
 		//}, 1000);
 	},
-	methods: {
+		methods: {
 		initDataTable(){
 			$(() => {
 				$('#TableEntities').DataTable({
@@ -246,6 +246,17 @@ const EntityManager = {
 				console.log(result);
 				return Swal.fire({icon: 'error', title: 'Oops...', text: result});
 			});
+		},
+		addRepeaterItem(fieldName){
+			if (!this.entityModel[fieldName]) {
+				this.entityModel[fieldName] = [];
+			}
+			this.entityModel[fieldName].push({});
+		},
+		removeRepeaterItem(fieldName, index){
+			if (this.entityModel[fieldName] && this.entityModel[fieldName].length > 0) {
+				this.entityModel[fieldName].splice(index, 1);
+			}
 		}
 	}
 };

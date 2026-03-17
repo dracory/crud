@@ -379,6 +379,21 @@ func (crud *Crud) form(fields []form.FieldInterface) []hb.TagInterface {
 			formGroupInput = hb.Raw(fieldValue)
 		}
 
+		if field.GetType() == FORM_FIELD_TYPE_REPEATER {
+			formGroupInput = hb.Div().Class("repeater-container").Children([]hb.TagInterface{
+				hb.Div().Class("repeater-items").Attr("v-for", "(item, index) in entityModel."+fieldName).Attr(":key", "index").Children([]hb.TagInterface{
+					hb.Div().Class("repeater-item mb-3 border p-3").Children([]hb.TagInterface{
+						hb.Button().Class("btn btn-sm btn-outline-danger float-end").Attr("v-on:click", "removeRepeaterItem('"+fieldName+"', index)").Child(hb.I().Class("bi-trash")).HTML(" Remove"),
+						hb.Div().Class("repeater-item-content").Attr("v-for", "(value, key) in item").Attr(":key", "key").Children([]hb.TagInterface{
+							hb.Label().Class("form-label").Attr("v-text", "key"),
+							hb.Input().Class("form-control").Attr("v-model", "entityModel."+fieldName+"[index][key]"),
+						}),
+					}),
+				}),
+				hb.Button().Class("btn btn-sm btn-outline-primary").Attr("v-on:click", "addRepeaterItem('"+fieldName+"')").Child(hb.I().Class("bi-plus")).HTML(" Add Item"),
+			})
+		}
+
 		formGroupInput.ID(fieldID)
 		if field.GetType() != FORM_FIELD_TYPE_RAW {
 			formGroup.AddChild(formGroupLabel)
@@ -431,6 +446,25 @@ func (crud *Crud) listCreateNames() []string {
 	}
 
 	return names
+}
+
+// validateRepeaterFields validates repeater fields in the form data
+func (crud *Crud) validateRepeaterFields(data map[string]string, fields []form.FieldInterface) error {
+	for _, field := range fields {
+		if field.GetType() == FORM_FIELD_TYPE_REPEATER && field.GetRequired() {
+			fieldName := field.GetName()
+			if fieldName == "" {
+				continue
+			}
+			
+			// Check if repeater field has at least one item
+			// Repeater fields are stored as JSON arrays in the data
+			if data[fieldName] == "" || data[fieldName] == "[]" {
+				return fmt.Errorf("%s is required field", field.GetLabel())
+			}
+		}
+	}
+	return nil
 }
 
 // listUpdateNames returns a list of names from the updateFields
