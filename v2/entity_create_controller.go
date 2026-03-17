@@ -100,9 +100,9 @@ func (controller *entityCreateController) modal() hb.TagInterface {
 	jsCloseFn := `function closeModal` + modalID + `() {document.getElementById('ModalEntityCreate').remove();[...document.getElementsByClassName('` + modalBackdropClass + `')].forEach(el => el.remove());}`
 
 	jsSubmitFn := `function submitModal` + modalID + `() {
-		const form = document.getElementById('` + modalID + `');
+		const form = document.querySelector('#` + modalID + ` form');
 		const formData = new FormData(form);
-		fetch('` + submitUrl + `', {method:'POST', body: new URLSearchParams(formData)})
+		fetch('` + submitUrl + `', {method:'POST', body: formData})
 			.then(r => r.json())
 			.then(result => {
 				if (result.status === 'success') {
