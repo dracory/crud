@@ -97,14 +97,15 @@ func (crud *Crud) buildFieldImageInline(field form.FieldInterface) *hb.Tag {
 func (crud *Crud) buildFieldRepeater(field form.FieldInterface) *hb.Tag {
 	fieldName := field.GetName()
 
-	// Typed sub-fields or generic key/value fallback.
+	// Typed sub-fields or generic single-value fallback.
 	var rowContent hb.TagInterface
-	emptyItem := "{}"
-	if rf, ok := field.(*RepeaterField); ok && len(rf.Fields) > 0 {
-		rowContent = crud.buildRepeaterRowFromFields(fieldName, rf.Fields)
+	emptyItem := `""` // generic: each row is a plain string
+	subFields := field.GetFields()
+	if len(subFields) > 0 {
+		rowContent = crud.buildRepeaterRowFromFields(fieldName, subFields)
 		// Pre-seed the new row JS object with all sub-field keys as empty strings.
 		emptyItem = "{"
-		for i, sf := range rf.Fields {
+		for i, sf := range subFields {
 			if i > 0 {
 				emptyItem += ", "
 			}
@@ -225,15 +226,12 @@ func (crud *Crud) buildSubFieldWidget(field form.FieldInterface, vModel string) 
 	}
 }
 
-// buildRepeaterRowGeneric renders a generic key/value row when no sub-fields are declared.
+// buildRepeaterRowGeneric renders a single text input per row when no sub-fields are declared.
+// Each row is treated as a plain string value bound to entityModel.<fieldName>[index].
 func (crud *Crud) buildRepeaterRowGeneric(fieldName string) *hb.Tag {
-	return hb.Div().Class("repeater-item-content").
-		Attr("v-for", "(value, key) in item").
-		Attr(":key", "key").
-		Children([]hb.TagInterface{
-			hb.Label().Class("form-label").Attr("v-text", "key"),
-			hb.Input().Class("form-control").Attr("v-model", "entityModel."+fieldName+"[index][key]"),
-		})
+	return hb.Input().
+		Class("form-control").
+		Attr("v-model", "entityModel."+fieldName+"[index]")
 }
 
 func (crud *Crud) buildFieldRaw(field form.FieldInterface) *hb.Tag {
