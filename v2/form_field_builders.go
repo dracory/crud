@@ -94,6 +94,20 @@ func (crud *Crud) buildFieldImageInline(field form.FieldInterface) *hb.Tag {
 	})
 }
 
+// buildFieldRepeater renders a Vue-driven repeater container for the given field.
+//
+// If the field declares sub-fields via GetFields(), each row is rendered as a
+// typed sub-form (buildRepeaterRowFromFields) with one input per sub-field.
+// The "Add Item" button pre-seeds the new row with all sub-field keys set to
+// empty strings so Vue's reactivity picks them up immediately.
+//
+// If no sub-fields are declared, each row falls back to a single plain text
+// input (buildRepeaterRowGeneric), treating the row as a simple string value.
+//
+// The rendered HTML relies on two Vue methods that must exist in the mounted
+// app: addRepeaterItem(fieldName, item) and removeRepeaterItem(fieldName, index).
+// These are provided by all three Vue apps in this package (EntityManager,
+// EntityCreate, EntityUpdate).
 func (crud *Crud) buildFieldRepeater(field form.FieldInterface) *hb.Tag {
 	fieldName := field.GetName()
 
@@ -136,7 +150,12 @@ func (crud *Crud) buildFieldRepeater(field form.FieldInterface) *hb.Tag {
 	})
 }
 
-// buildRepeaterRowFromFields renders a typed sub-form row using the declared sub-fields.
+// buildRepeaterRowFromFields renders one repeater row as a Bootstrap grid row
+// with a labeled input per sub-field. The v-model for each input is scoped to
+// entityModel.<fieldName>[index].<subFieldName>, so Vue binds each sub-field
+// independently within the row object.
+//
+// All field types supported by buildSubFieldWidget are available as sub-fields.
 func (crud *Crud) buildRepeaterRowFromFields(fieldName string, fields []form.FieldInterface) *hb.Tag {
 	row := hb.Div().Class("repeater-item-content row g-2")
 	for _, subField := range fields {
@@ -157,7 +176,13 @@ func (crud *Crud) buildRepeaterRowFromFields(fieldName string, fields []form.Fie
 	return row
 }
 
-// buildSubFieldWidget builds the input widget for a repeater sub-field using an explicit vModel path.
+// buildSubFieldWidget returns the appropriate Vue-bound input widget for a
+// repeater sub-field, using the provided vModel path instead of the default
+// top-level entityModel.<name> path.
+//
+// Supported types: string, number, password, email, tel, url, date, datetime,
+// color, checkbox, hidden, htmlarea, image, radio, select, textarea, blockarea,
+// blockeditor. Anything else falls back to a plain text input.
 func (crud *Crud) buildSubFieldWidget(field form.FieldInterface, vModel string) *hb.Tag {
 	switch field.GetType() {
 	case FORM_FIELD_TYPE_TEXTAREA, FORM_FIELD_TYPE_BLOCKAREA, FORM_FIELD_TYPE_BLOCKEDITOR:
@@ -226,8 +251,9 @@ func (crud *Crud) buildSubFieldWidget(field form.FieldInterface, vModel string) 
 	}
 }
 
-// buildRepeaterRowGeneric renders a single text input per row when no sub-fields are declared.
-// Each row is treated as a plain string value bound to entityModel.<fieldName>[index].
+// buildRepeaterRowGeneric renders a single plain text input per row, used when
+// the repeater has no declared sub-fields. The entire row is treated as a
+// scalar string value bound to entityModel.<fieldName>[index].
 func (crud *Crud) buildRepeaterRowGeneric(fieldName string) *hb.Tag {
 	return hb.Input().
 		Class("form-control").
