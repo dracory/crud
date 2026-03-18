@@ -40,8 +40,8 @@ http.HandleFunc("/admin", c.Handler)
 | `EntityNamePlural` | `string` | No | Plural name of the entity (e.g., "Products"). Used in headings. |
 | `HomeURL` | `string` | No | URL for the "Home" breadcrumb link. |
 | `ColumnNames` | `[]string` | No | Column headers for the entity manager table. Supports raw HTML via `{!! !!}` wrapper. |
-| `CreateFields` | `[]form.FieldInterface` | No | Form fields for the create modal. |
-| `UpdateFields` | `[]form.FieldInterface` | **Yes** | Must not be `nil`. Can be an empty slice if update is not needed. |
+| `CreateFields` | `[]FieldInterface` | No | Form fields for the create modal. |
+| `UpdateFields` | `[]FieldInterface` | **Yes** | Must not be `nil`. Can be an empty slice if update is not needed. |
 | `FileManagerURL` | `string` | No | URL for a file manager. When set, image fields display a "Browse" link. |
 
 ### Callback Functions

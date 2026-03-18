@@ -83,7 +83,7 @@ Each controller builds its own breadcrumb trail:
 
 ## Form Rendering
 
-**Method:** `form(fields []form.FieldInterface) []hb.TagInterface`
+**Method:** `form(fields []FieldInterface) []hb.TagInterface`
 
 Generates Bootstrap form groups from field definitions. Each field produces:
 

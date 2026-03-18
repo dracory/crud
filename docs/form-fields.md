@@ -2,38 +2,96 @@
 
 ## Overview
 
-Form fields define the inputs rendered in the create modal and update form. They use the `form.FieldInterface` from `github.com/dracory/form` and are configured via `form.NewField(form.FieldOptions{...})`.
+Form fields define the inputs rendered in the create modal and update form. All field types, constructors, and the `FieldInterface` are built into this package — no external dependency is needed.
 
 ## Creating Fields
 
+### Struct-based
+
 ```go
-import "github.com/dracory/form"
 import crud "github.com/dracory/crud/v2"
 
-fields := []form.FieldInterface{
-    form.NewField(form.FieldOptions{
+fields := []crud.FieldInterface{
+    crud.NewField(crud.FieldOptions{
         Name:     "title",
         Label:    "Title",
         Type:     crud.FORM_FIELD_TYPE_STRING,
         Required: true,
         Help:     "Enter the product title",
     }),
-    form.NewField(form.FieldOptions{
+    crud.NewField(crud.FieldOptions{
         Name:  "description",
         Label: "Description",
         Type:  crud.FORM_FIELD_TYPE_TEXTAREA,
     }),
-    form.NewField(form.FieldOptions{
+    crud.NewField(crud.FieldOptions{
         Name:  "status",
         Label: "Status",
         Type:  crud.FORM_FIELD_TYPE_SELECT,
-        Options: []form.FieldOption{
+        Options: []crud.FieldOption{
             {Key: "active", Value: "Active"},
             {Key: "inactive", Value: "Inactive"},
         },
     }),
 }
 ```
+
+### Fluent builder
+
+The same fields using convenience constructors and fluent methods:
+
+```go
+fields := []crud.FieldInterface{
+    crud.NewStringField("title", "Title").WithRequired().WithHelp("Enter the product title"),
+    crud.NewTextAreaField("description", "Description"),
+    crud.NewSelectField("status", "Status", []crud.FieldOption{
+        {Key: "active", Value: "Active"},
+        {Key: "inactive", Value: "Inactive"},
+    }),
+}
+```
+
+## Convenience Constructors
+
+| Constructor | Field Type |
+|-------------|-----------|
+| `NewStringField(name, label)` | `FORM_FIELD_TYPE_STRING` |
+| `NewNumberField(name, label)` | `FORM_FIELD_TYPE_NUMBER` |
+| `NewPasswordField(name, label)` | `FORM_FIELD_TYPE_PASSWORD` |
+| `NewEmailField(name, label)` | `FORM_FIELD_TYPE_EMAIL` |
+| `NewTelField(name, label)` | `FORM_FIELD_TYPE_TEL` |
+| `NewURLField(name, label)` | `FORM_FIELD_TYPE_URL` |
+| `NewDateField(name, label)` | `FORM_FIELD_TYPE_DATE` |
+| `NewDateTimeField(name, label)` | `FORM_FIELD_TYPE_DATETIME` |
+| `NewColorField(name, label)` | `FORM_FIELD_TYPE_COLOR` |
+| `NewCheckboxField(name, label)` | `FORM_FIELD_TYPE_CHECKBOX` |
+| `NewRadioField(name, label, options)` | `FORM_FIELD_TYPE_RADIO` |
+| `NewTextAreaField(name, label)` | `FORM_FIELD_TYPE_TEXTAREA` |
+| `NewSelectField(name, label, options)` | `FORM_FIELD_TYPE_SELECT` |
+| `NewImageField(name, label)` | `FORM_FIELD_TYPE_IMAGE` |
+| `NewFileField(name, label)` | `FORM_FIELD_TYPE_FILE` |
+| `NewHtmlAreaField(name, label)` | `FORM_FIELD_TYPE_HTMLAREA` |
+| `NewHiddenField(name, value)` | `FORM_FIELD_TYPE_HIDDEN` |
+| `NewRawField(value)` | `FORM_FIELD_TYPE_RAW` |
+| `NewRepeater(RepeaterOptions{...})` | `FORM_FIELD_TYPE_REPEATER` |
+
+## Fluent Methods
+
+All methods return `*Field` for chaining:
+
+| Method | Description |
+|--------|-------------|
+| `.WithID(id)` | Set HTML element ID |
+| `.WithName(name)` | Set field name |
+| `.WithLabel(label)` | Set label text |
+| `.WithHelp(text)` | Set help text shown below the input |
+| `.WithType(type)` | Set field type |
+| `.WithValue(value)` | Set default value |
+| `.WithRequired()` | Mark as required (shows asterisk, validated on save) |
+| `.WithOptions(opts...)` | Set static options for select/radio fields |
+| `.WithOptionsF(fn)` | Set dynamic options function (called at render time) |
+| `.WithFields(fields...)` | Set sub-fields for repeater rows |
+| `.WithFuncValuesProcess(fn)` | Set value pre-processor for repeater update form |
 
 ## Field Types
 
@@ -53,25 +111,21 @@ The following field type constants are defined in `constants.go`:
 | `FORM_FIELD_TYPE_DATETIME` | `"datetime"` | Element Plus `<el-date-picker>` with datetime type |
 | `FORM_FIELD_TYPE_RAW` | `"raw"` | Raw HTML output from the field's `Value`. No label is rendered. |
 
-## Field Options
-
-The `form.FieldOptions` struct supports:
+## FieldOptions Reference
 
 | Option | Type | Description |
 |--------|------|-------------|
 | `ID` | `string` | HTML element ID. Auto-generated if empty. |
-| `Name` | `string` | Field name, used as the form key and `v-model` property. Fields with empty names are skipped in `listCreateNames`/`listUpdateNames`. |
+| `Name` | `string` | Field name, used as the form key and `v-model` property. Fields with empty names are skipped. |
 | `Label` | `string` | Display label. Falls back to `Name` if empty. |
 | `Type` | `string` | One of the `FORM_FIELD_TYPE_*` constants. |
 | `Value` | `string` | Default value. For `RAW` type, this is the raw HTML content. |
-| `Required` | `bool` | When `true`, a red asterisk is shown next to the label, and the field is validated as non-empty on save. |
+| `Required` | `bool` | When `true`, a red asterisk is shown and the field is validated as non-empty on save. |
 | `Help` | `string` | Help text displayed below the field as a `text-info` paragraph. Supports HTML. |
-| `Options` | `[]form.FieldOption` | Static options for `SELECT` fields. Each has a `Key` and `Value`. |
-| `OptionsF` | `func() []form.FieldOption` | Dynamic options function for `SELECT` fields. Called at render time. |
-| `Readonly` | `bool` | Marks the field as read-only. |
-| `Disabled` | `bool` | Marks the field as disabled. |
-| `Placeholder` | `string` | Placeholder text for input fields. |
-| `Invisible` | `bool` | Hides the field. |
+| `Options` | `[]FieldOption` | Static options for `SELECT` and `RADIO` fields. Each has a `Key` and `Value`. |
+| `OptionsF` | `func() []FieldOption` | Dynamic options function for `SELECT` fields. Called at render time. |
+| `Fields` | `[]FieldInterface` | Sub-fields for `REPEATER` type. |
+| `FuncValuesProcess` | `func(raw string) []map[string]string` | Pre-processor for repeater values on the update form. |
 
 ## Vue.js Integration
 
@@ -81,7 +135,7 @@ All form fields (except `RAW`) use Vue.js `v-model` binding with the pattern:
 v-model="entityModel.<fieldName>"
 ```
 
-This means the field values are reactive and automatically synchronized with the Vue.js app data. The update controller initializes `entityModel` with values from `FuncFetchUpdateData`, while the create modal initializes with default values from the field definitions.
+The update controller initializes `entityModel` with values from `FuncFetchUpdateData`, while the create modal initializes with default values from the field definitions.
 
 ## Required Field Validation
 
@@ -110,40 +164,56 @@ Renders:
 - A "See Image Data" toggle button to show/hide the raw base64 data
 - A `<textarea>` for viewing/editing the base64 data (shown when toggled)
 
-The `uploadImage` method in the Vue.js update controller handles the file-to-base64 conversion.
-
 ## Repeater Fields
 
 `FORM_FIELD_TYPE_REPEATER` renders a dynamic list of rows that the user can add, remove, and reorder.
 
-### Basic usage (generic single-value rows)
+### Generic (single-value rows)
 
 ```go
-form.NewField(form.FieldOptions{
+crud.NewField(crud.FieldOptions{
     Name:  "image_urls",
     Label: "Image URLs",
     Type:  crud.FORM_FIELD_TYPE_REPEATER,
 })
 ```
 
-Each row is a plain text input. The value is bound to `entityModel.image_urls[index]`.
+Each row is a plain text input bound to `entityModel.image_urls[index]`.
 
 ### Typed sub-fields (structured rows)
 
-Pass sub-fields via `form.NewRepeater()` to render a mini-form per row:
-
 ```go
-form.NewRepeater(form.RepeaterOptions{
+crud.NewRepeater(crud.RepeaterOptions{
     Name:  "links",
     Label: "Links",
-    Fields: []form.FieldInterface{
-        form.NewField(form.FieldOptions{Name: "label", Label: "Label", Type: crud.FORM_FIELD_TYPE_STRING}),
-        form.NewField(form.FieldOptions{Name: "url",   Label: "URL",   Type: crud.FORM_FIELD_TYPE_URL}),
+    Fields: []crud.FieldInterface{
+        crud.NewStringField("label", "Label"),
+        crud.NewURLField("url", "URL"),
     },
 })
 ```
 
 All field types supported by the top-level form are also supported as sub-fields.
+
+### Value pre-processing for the update form
+
+When the update form loads, repeater values come back from `FuncFetchUpdateData` as a raw JSON string. Use `FuncValuesProcess` to decode them into the `[]map[string]string` structure Vue expects:
+
+```go
+crud.NewRepeater(crud.RepeaterOptions{
+    Name:  "links",
+    Label: "Links",
+    Fields: []crud.FieldInterface{
+        crud.NewStringField("label", "Label"),
+        crud.NewURLField("url", "URL"),
+    },
+    FuncValuesProcess: func(raw string) []map[string]string {
+        var rows []map[string]string
+        json.Unmarshal([]byte(raw), &rows)
+        return rows
+    },
+})
+```
 
 ### Row controls
 
@@ -176,7 +246,7 @@ The server-side `collectRepeaterField(r, fieldName)` function parses these keys 
 [{"label":"Home","url":"https://example.com"},{"label":"About","url":"https://example.com/about"}]
 ```
 
-This JSON string is what arrives in `data[fieldName]` inside your `FuncCreate` / `FuncUpdate` callback. Decode it with `json.Unmarshal`:
+This JSON string is what arrives in `data[fieldName]` inside your `FuncCreate` / `FuncUpdate` callback:
 
 ```go
 FuncUpdate: func(r *http.Request, entityID string, data map[string]string) error {
@@ -185,7 +255,6 @@ FuncUpdate: func(r *http.Request, entityID string, data map[string]string) error
         URL   string `json:"url"`
     }
     json.Unmarshal([]byte(data["links"]), &links)
-    // use links...
     return nil
 },
 ```

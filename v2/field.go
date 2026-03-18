@@ -108,3 +108,80 @@ func NewRepeater(opts RepeaterOptions) *Field {
 		funcValuesProcess: opts.FuncValuesProcess,
 	}
 }
+
+// == Fluent builder methods ==================================================
+
+func (f *Field) WithID(id string) *Field                { f.id = id; return f }
+func (f *Field) WithName(name string) *Field            { f.name = name; return f }
+func (f *Field) WithLabel(label string) *Field          { f.label = label; return f }
+func (f *Field) WithHelp(help string) *Field            { f.help = help; return f }
+func (f *Field) WithType(t string) *Field               { f.fieldType = t; return f }
+func (f *Field) WithValue(v string) *Field              { f.value = v; return f }
+func (f *Field) WithRequired() *Field                   { f.required = true; return f }
+func (f *Field) WithOptions(opts ...FieldOption) *Field { f.options = opts; return f }
+func (f *Field) WithOptionsF(fn func() []FieldOption) *Field {
+	f.optionsF = fn
+	return f
+}
+func (f *Field) WithFields(fields ...FieldInterface) *Field { f.fields = fields; return f }
+func (f *Field) WithFuncValuesProcess(fn func(raw string) []map[string]string) *Field {
+	f.funcValuesProcess = fn
+	return f
+}
+
+// == Convenience constructors ================================================
+
+func NewStringField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_STRING})
+}
+func NewEmailField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_EMAIL})
+}
+func NewNumberField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_NUMBER})
+}
+func NewPasswordField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_PASSWORD})
+}
+func NewHiddenField(name, value string) *Field {
+	return NewField(FieldOptions{Name: name, Value: value, Type: FORM_FIELD_TYPE_HIDDEN})
+}
+func NewDateField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_DATE})
+}
+func NewDateTimeField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_DATETIME})
+}
+func NewSelectField(name, label string, options []FieldOption) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_SELECT, Options: options})
+}
+func NewTextAreaField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_TEXTAREA})
+}
+func NewCheckboxField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_CHECKBOX})
+}
+func NewRadioField(name, label string, options []FieldOption) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_RADIO, Options: options})
+}
+func NewFileField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_FILE})
+}
+func NewImageField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_IMAGE})
+}
+func NewColorField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_COLOR})
+}
+func NewTelField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_TEL})
+}
+func NewURLField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_URL})
+}
+func NewHtmlAreaField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_HTMLAREA})
+}
+func NewRawField(value string) *Field {
+	return NewField(FieldOptions{Value: value, Type: FORM_FIELD_TYPE_RAW})
+}

@@ -61,7 +61,7 @@ When a column name is wrapped in `{!! !!}`, the corresponding cell values are re
 
 Returns an HTML fragment containing a Bootstrap 5 modal with:
 
-- Form fields generated from `CreateFields` using `github.com/dracory/form`
+- Form fields generated from `CreateFields`
 - "Create & Edit" submit button using HTMX (`hx-post` to the create AJAX endpoint)
 - "Close" cancel button
 - Modal backdrop

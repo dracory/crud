@@ -74,11 +74,12 @@ See `go.mod` for the full list. Key dependencies:
 | `github.com/dracory/api` | JSON API response helpers (`api.Respond`, `api.Error`, `api.SuccessWithData`) |
 | `github.com/dracory/bs` | Bootstrap component builder (modals, input groups) |
 | `github.com/dracory/cdn` | CDN URL helpers for frontend libraries |
-| `github.com/dracory/form` | Form field interface and builder |
 | `github.com/dracory/hb` | HTML builder for server-side HTML generation |
 | `github.com/dracory/req` | HTTP request parameter extraction |
 | `github.com/dracory/str` | String utilities (random ID generation) |
 | `github.com/samber/lo` | Functional programming helpers (map, ternary, forEach) |
+
+Field types, constructors, and the `FieldInterface` are defined directly in this package (`field.go`) — no external form dependency is required.
 
 ## Security
 

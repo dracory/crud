@@ -18,7 +18,6 @@ import (
 	"net/http"
 
 	crud "github.com/dracory/crud/v2"
-	"github.com/dracory/form"
 )
 
 func main() {
@@ -51,44 +50,33 @@ func main() {
 			return nil
 		},
 		FuncFetchReadData: func(r *http.Request, entityID string) ([]crud.KeyValue, error) {
-			// Return key-value pairs for read view
 			return []crud.KeyValue{
 				{Key: "Name", Value: "Widget"},
 				{Key: "Status", Value: "Active"},
 			}, nil
 		},
-		CreateFields: []form.FieldInterface{
-			form.NewField(form.FieldOptions{
+		CreateFields: []crud.FieldInterface{
+			crud.NewField(crud.FieldOptions{
 				Name:     "name",
 				Label:    "Name",
 				Type:     crud.FORM_FIELD_TYPE_STRING,
 				Required: true,
 			}),
-			form.NewField(form.FieldOptions{
+			crud.NewField(crud.FieldOptions{
 				Name:  "status",
 				Label: "Status",
 				Type:  crud.FORM_FIELD_TYPE_SELECT,
-				Options: []form.FieldOption{
+				Options: []crud.FieldOption{
 					{Key: "active", Value: "Active"},
 					{Key: "draft", Value: "Draft"},
 				},
 			}),
 		},
-		UpdateFields: []form.FieldInterface{
-			form.NewField(form.FieldOptions{
-				Name:     "name",
-				Label:    "Name",
-				Type:     crud.FORM_FIELD_TYPE_STRING,
-				Required: true,
-			}),
-			form.NewField(form.FieldOptions{
-				Name:  "status",
-				Label: "Status",
-				Type:  crud.FORM_FIELD_TYPE_SELECT,
-				Options: []form.FieldOption{
-					{Key: "active", Value: "Active"},
-					{Key: "draft", Value: "Draft"},
-				},
+		UpdateFields: []crud.FieldInterface{
+			crud.NewStringField("name", "Name").WithRequired(),
+			crud.NewSelectField("status", "Status", []crud.FieldOption{
+				{Key: "active", Value: "Active"},
+				{Key: "draft", Value: "Draft"},
 			}),
 		},
 	})
@@ -112,6 +100,7 @@ func main() {
 - **Custom Layout** - Plug in your own layout function to wrap pages in your app shell
 - **23 Field Types** - String, number, password, email, tel, url, date, datetime, color, checkbox, radio, textarea, select, image, inline image, HTML editor, block editor, hidden, file, repeater, table, and raw HTML
 - **Repeater Fields** - Dynamic add/remove/reorder rows, supports typed sub-fields (any field type) or generic single-value rows; submitted as standard bracket notation (`field[0][key]=val`) and received as a JSON array string
+- **No External Form Dependency** - Field types, constructors, and fluent builders are all built into this package
 - **Raw HTML Support** - Column names and read view values support `{!! !!}` syntax for raw HTML rendering
 - **Middleware Hooks** - `FuncBeforeAction` / `FuncAfterAction` for per-action authorization, audit logging, and custom headers
 - **CSRF Validation** - Optional `FuncValidateCSRF` hook validates POST requests before controller actions
@@ -121,7 +110,93 @@ func main() {
 - **Unified JSON Responses** - All AJAX endpoints (create, update, trash) return consistent JSON via `api.Respond`
 - **Request Context** - All callbacks receive `*http.Request` for access to auth, headers, cookies, and context
 
-## Form Field Types
+## Form Fields
+
+Fields are defined using types built into this package — no external form dependency needed.
+
+### Struct-based
+
+```go
+crud.NewField(crud.FieldOptions{
+    Name:     "title",
+    Label:    "Title",
+    Type:     crud.FORM_FIELD_TYPE_STRING,
+    Required: true,
+})
+```
+
+### Fluent builder
+
+Chain methods directly on the constructor — no struct literal needed:
+
+```go
+UpdateFields: []crud.FieldInterface{
+    crud.NewStringField("name", "Name").
+        WithRequired().
+        WithHelp("Full product name"),
+
+    crud.NewSelectField("status", "Status", []crud.FieldOption{
+        {Key: "active",   Value: "Active"},
+        {Key: "draft",    Value: "Draft"},
+        {Key: "archived", Value: "Archived"},
+    }),
+
+    crud.NewTextAreaField("description", "Description").
+        WithHelp("Supports plain text only"),
+
+    crud.NewNumberField("price", "Price (cents)").
+        WithRequired(),
+
+    crud.NewHiddenField("source", "web"),
+
+    crud.NewRepeater(crud.RepeaterOptions{
+        Name:  "images",
+        Label: "Images",
+        Fields: []crud.FieldInterface{
+            crud.NewURLField("url", "URL").WithRequired(),
+            crud.NewStringField("alt", "Alt Text"),
+        },
+    }),
+},
+```
+
+### Convenience constructors
+
+| Constructor | Field Type |
+|-------------|-----------|
+| `NewStringField(name, label)` | `FORM_FIELD_TYPE_STRING` |
+| `NewNumberField(name, label)` | `FORM_FIELD_TYPE_NUMBER` |
+| `NewPasswordField(name, label)` | `FORM_FIELD_TYPE_PASSWORD` |
+| `NewEmailField(name, label)` | `FORM_FIELD_TYPE_EMAIL` |
+| `NewTelField(name, label)` | `FORM_FIELD_TYPE_TEL` |
+| `NewURLField(name, label)` | `FORM_FIELD_TYPE_URL` |
+| `NewDateField(name, label)` | `FORM_FIELD_TYPE_DATE` |
+| `NewDateTimeField(name, label)` | `FORM_FIELD_TYPE_DATETIME` |
+| `NewColorField(name, label)` | `FORM_FIELD_TYPE_COLOR` |
+| `NewCheckboxField(name, label)` | `FORM_FIELD_TYPE_CHECKBOX` |
+| `NewRadioField(name, label, options)` | `FORM_FIELD_TYPE_RADIO` |
+| `NewTextAreaField(name, label)` | `FORM_FIELD_TYPE_TEXTAREA` |
+| `NewSelectField(name, label, options)` | `FORM_FIELD_TYPE_SELECT` |
+| `NewImageField(name, label)` | `FORM_FIELD_TYPE_IMAGE` |
+| `NewFileField(name, label)` | `FORM_FIELD_TYPE_FILE` |
+| `NewHtmlAreaField(name, label)` | `FORM_FIELD_TYPE_HTMLAREA` |
+| `NewHiddenField(name, value)` | `FORM_FIELD_TYPE_HIDDEN` |
+| `NewRawField(value)` | `FORM_FIELD_TYPE_RAW` |
+
+### Fluent methods
+
+| Method | Description |
+|--------|-------------|
+| `.WithRequired()` | Mark field as required |
+| `.WithLabel(label)` | Set label |
+| `.WithHelp(text)` | Set help text |
+| `.WithValue(value)` | Set default value |
+| `.WithOptions(opts...)` | Set static options |
+| `.WithOptionsF(fn)` | Set dynamic options function |
+| `.WithFields(fields...)` | Set sub-fields (repeater) |
+| `.WithFuncValuesProcess(fn)` | Set value pre-processor for repeater |
+
+## Field Type Constants
 
 | Constant | Description |
 |----------|-------------|
@@ -155,19 +230,34 @@ Repeater fields let users manage a dynamic list of rows directly in the form.
 
 ```go
 // Generic — each row is a single plain text value
-form.NewField(form.FieldOptions{
+crud.NewField(crud.FieldOptions{
     Name:  "image_urls",
     Label: "Image URLs",
     Type:  crud.FORM_FIELD_TYPE_REPEATER,
 })
 
 // Typed — each row is a mini-form with multiple sub-fields
-form.NewRepeater(form.RepeaterOptions{
+crud.NewRepeater(crud.RepeaterOptions{
     Name:  "links",
     Label: "Links",
-    Fields: []form.FieldInterface{
-        form.NewField(form.FieldOptions{Name: "label", Label: "Label", Type: crud.FORM_FIELD_TYPE_STRING}),
-        form.NewField(form.FieldOptions{Name: "url",   Label: "URL",   Type: crud.FORM_FIELD_TYPE_URL}),
+    Fields: []crud.FieldInterface{
+        crud.NewStringField("label", "Label"),
+        crud.NewURLField("url", "URL"),
+    },
+})
+
+// With a value pre-processor for the update form
+crud.NewRepeater(crud.RepeaterOptions{
+    Name:  "links",
+    Label: "Links",
+    Fields: []crud.FieldInterface{
+        crud.NewStringField("label", "Label"),
+        crud.NewURLField("url", "URL"),
+    },
+    FuncValuesProcess: func(raw string) []map[string]string {
+        var rows []map[string]string
+        json.Unmarshal([]byte(raw), &rows)
+        return rows
     },
 })
 ```
@@ -179,7 +269,7 @@ links[0][label]=Home&links[0][url]=https://example.com
 links[1][label]=About&links[1][url]=https://example.com/about
 ```
 
-Inside `FuncCreate` / `FuncUpdate`, the repeater field arrives as a JSON array string. Decode it with `json.Unmarshal`:
+Inside `FuncCreate` / `FuncUpdate`, the repeater field arrives as a JSON array string:
 
 ```go
 FuncUpdate: func(r *http.Request, entityID string, data map[string]string) error {
@@ -234,7 +324,7 @@ Detailed documentation is available in the [`docs/`](../docs/) folder:
 - **[Overview](../docs/overview.md)** - Package architecture, core types, frontend stack, dependencies, and security model
 - **[Configuration](../docs/configuration.md)** - `Config` struct reference, `New()` validation rules, callback function signatures
 - **[Controllers](../docs/controllers.md)** - Endpoint routing, controller behavior, request/response formats
-- **[Form Fields](../docs/form-fields.md)** - Field type constants, `FieldOptions` reference, Vue.js integration, validation
+- **[Form Fields](../docs/form-fields.md)** - Field type constants, constructors, fluent builders, Vue.js integration, validation
 - **[URL Helpers](../docs/url-helpers.md)** - URL generation methods and route path constants
 - **[Layout and Templates](../docs/layout-and-templates.md)** - Layout rendering, breadcrumbs, default webpage template, form rendering
 
