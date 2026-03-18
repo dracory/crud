@@ -167,7 +167,31 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 				data["entity_id"] = data["entityId"];
 				delete data["entityId"];
 
-				$.post(entityUpdateUrl, data).done((response)=>{
+				const formData = new URLSearchParams();
+				for (const key in data) {
+					const val = data[key];
+					if (Array.isArray(val)) {
+						val.forEach((row, i) => {
+							if (row !== null && typeof row === 'object') {
+								Object.keys(row).forEach(subKey => {
+									formData.append(key + '[' + i + '][' + subKey + ']', row[subKey] ?? '');
+								});
+							} else {
+								formData.append(key + '[' + i + ']', row ?? '');
+							}
+						});
+					} else {
+						formData.append(key, val ?? '');
+					}
+				}
+
+				fetch(entityUpdateUrl, {
+					method: 'POST',
+					headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+					body: formData.toString()
+				})
+				.then(r => r.json())
+				.then((response) => {
 					if (response.status !== "success") {
 						return Swal.fire({icon: 'error', title: 'Oops...', text: response.message});
 					}
@@ -186,9 +210,10 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 					} else {
 						return Swal.fire({icon: 'success',title: 'Entity saved'});
 					}
-				}).fail((result)=>{
+				})
+				.catch((result)=>{
 					console.log(result);
-					return Swal.fire({icon: 'error', title: 'Oops...', text: result});
+					return Swal.fire({icon: 'error', title: 'Oops...', text: result.toString()});
 				});
 			},
 			uploadImage(event, fieldName) {
@@ -237,10 +262,8 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 
 	title := "Edit " + controller.crud.entityNameSingular
 	html := controller.crud.layout(w, r, title, content, []string{
-		cdn.JqueryDataTablesCss_1_13_4(),
 		cdn.TrumbowygCss_2_27_3(),
 	}, "", []string{
-		cdn.JqueryDataTablesJs_1_13_4(),
 		cdn.TrumbowygJs_2_27_3(),
 		"https://cdn.jsdelivr.net/npm/vue-trumbowyg@4",
 		"https://cdn.jsdelivr.net/npm/element-plus",
