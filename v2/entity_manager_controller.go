@@ -236,15 +236,20 @@ const EntityManager = {
 				entity_id:entityId
 			}).done((response)=>{
 				if (response.status !== "success") {
-					return Swal.fire({icon: 'error', title: 'Oops...', text: response.message});
+					return Swal.fire({icon: 'error', title: 'Oops...', text: response.message, position:'top-end'});
 				}
 
-				setTimeout(()=>{return location.href = location.href;}, 3000)
-
-				return Swal.fire({icon: 'success', title: 'Entity trashed'});
+				Swal.fire({
+					icon: 'success',
+					title: 'Deleted successfully',
+					position: 'top-end',
+					showConfirmButton: false,
+					timer: 2000,
+					timerProgressBar: true
+				}).then(() => { location.href = location.href; });
 			}).fail((result)=>{
 				console.log(result);
-				return Swal.fire({icon: 'error', title: 'Oops...', text: result});
+				return Swal.fire({icon: 'error', title: 'Oops...', text: result, position:'top-end'});
 			});
 		},
 		addRepeaterItem(fieldName, item){
