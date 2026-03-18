@@ -108,10 +108,27 @@ const EntityCreate = {
 	methods: {
 		submitModalModalEntityCreate() {
 			const data = JSON.parse(JSON.stringify(this.entityModel));
+			const formData = new URLSearchParams();
+			for (const key in data) {
+				const val = data[key];
+				if (Array.isArray(val)) {
+					val.forEach((row, i) => {
+						if (row !== null && typeof row === 'object') {
+							Object.keys(row).forEach(subKey => {
+								formData.append(key + '[' + i + '][' + subKey + ']', row[subKey] ?? '');
+							});
+						} else {
+							formData.append(key + '[' + i + ']', row ?? '');
+						}
+					});
+				} else {
+					formData.append(key, val ?? '');
+				}
+			}
 			fetch('` + submitUrl + `', {
 				method: 'POST',
-				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify(data)
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				body: formData.toString()
 			})
 			.then(r => r.json())
 			.then(result => {

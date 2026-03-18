@@ -111,3 +111,87 @@ Renders:
 - A `<textarea>` for viewing/editing the base64 data (shown when toggled)
 
 The `uploadImage` method in the Vue.js update controller handles the file-to-base64 conversion.
+
+## Repeater Fields
+
+`FORM_FIELD_TYPE_REPEATER` renders a dynamic list of rows that the user can add, remove, and reorder.
+
+### Basic usage (generic single-value rows)
+
+```go
+form.NewField(form.FieldOptions{
+    Name:  "image_urls",
+    Label: "Image URLs",
+    Type:  crud.FORM_FIELD_TYPE_REPEATER,
+})
+```
+
+Each row is a plain text input. The value is bound to `entityModel.image_urls[index]`.
+
+### Typed sub-fields (structured rows)
+
+Pass sub-fields via `form.NewRepeater()` to render a mini-form per row:
+
+```go
+form.NewRepeater(form.RepeaterOptions{
+    Name:  "links",
+    Label: "Links",
+    Fields: []form.FieldInterface{
+        form.NewField(form.FieldOptions{Name: "label", Label: "Label", Type: crud.FORM_FIELD_TYPE_STRING}),
+        form.NewField(form.FieldOptions{Name: "url",   Label: "URL",   Type: crud.FORM_FIELD_TYPE_URL}),
+    },
+})
+```
+
+All field types supported by the top-level form are also supported as sub-fields.
+
+### Row controls
+
+Each row renders three buttons:
+- Up arrow — moves the row up (disabled on the first row)
+- Down arrow — moves the row down (disabled on the last row)
+- Trash — removes the row
+
+These rely on four Vue methods present in all three Vue apps (`EntityManager`, `EntityCreate`, `EntityUpdate`):
+
+```
+addRepeaterItem(fieldName, item)
+removeRepeaterItem(fieldName, index)
+moveRepeaterItemUp(fieldName, index)
+moveRepeaterItemDown(fieldName, index)
+```
+
+### How repeater data is submitted and received
+
+The browser submits repeater rows using standard bracket notation:
+
+```
+links[0][label]=Home&links[0][url]=https://example.com
+links[1][label]=About&links[1][url]=https://example.com/about
+```
+
+The server-side `collectRepeaterField(r, fieldName)` function parses these keys and returns a JSON array string:
+
+```json
+[{"label":"Home","url":"https://example.com"},{"label":"About","url":"https://example.com/about"}]
+```
+
+This JSON string is what arrives in `data[fieldName]` inside your `FuncCreate` / `FuncUpdate` callback. Decode it with `json.Unmarshal`:
+
+```go
+FuncUpdate: func(r *http.Request, entityID string, data map[string]string) error {
+    var links []struct {
+        Label string `json:"label"`
+        URL   string `json:"url"`
+    }
+    json.Unmarshal([]byte(data["links"]), &links)
+    // use links...
+    return nil
+},
+```
+
+For generic (no sub-fields) repeaters the array contains plain strings:
+
+```json
+["https://example.com/a.jpg","https://example.com/b.jpg"]
+```

@@ -110,7 +110,8 @@ func main() {
 - **Update Form** - Vue.js reactive form with two-way data binding
 - **Trash** - Soft-delete with confirmation modal
 - **Custom Layout** - Plug in your own layout function to wrap pages in your app shell
-- **11 Field Types** - String, number, password, textarea, select, image, inline image, HTML editor, block editor, datetime picker, and raw HTML
+- **23 Field Types** - String, number, password, email, tel, url, date, datetime, color, checkbox, radio, textarea, select, image, inline image, HTML editor, block editor, hidden, file, repeater, table, and raw HTML
+- **Repeater Fields** - Dynamic add/remove/reorder rows, supports typed sub-fields (any field type) or generic single-value rows; submitted as standard bracket notation (`field[0][key]=val`) and received as a JSON array string
 - **Raw HTML Support** - Column names and read view values support `{!! !!}` syntax for raw HTML rendering
 - **Middleware Hooks** - `FuncBeforeAction` / `FuncAfterAction` for per-action authorization, audit logging, and custom headers
 - **CSRF Validation** - Optional `FuncValidateCSRF` hook validates POST requests before controller actions
@@ -127,14 +128,71 @@ func main() {
 | `FORM_FIELD_TYPE_STRING` | Text input |
 | `FORM_FIELD_TYPE_NUMBER` | Number input |
 | `FORM_FIELD_TYPE_PASSWORD` | Password input |
+| `FORM_FIELD_TYPE_EMAIL` | Email input |
+| `FORM_FIELD_TYPE_TEL` | Telephone input |
+| `FORM_FIELD_TYPE_URL` | URL input |
+| `FORM_FIELD_TYPE_DATE` | Date input |
+| `FORM_FIELD_TYPE_DATETIME` | Element Plus date/time picker |
+| `FORM_FIELD_TYPE_COLOR` | Color picker |
+| `FORM_FIELD_TYPE_CHECKBOX` | Checkbox |
+| `FORM_FIELD_TYPE_RADIO` | Radio button group |
 | `FORM_FIELD_TYPE_TEXTAREA` | Multi-line text area |
 | `FORM_FIELD_TYPE_SELECT` | Dropdown select with static or dynamic options |
 | `FORM_FIELD_TYPE_IMAGE` | Image URL input with preview and optional file manager |
 | `FORM_FIELD_TYPE_IMAGE_INLINE` | Image upload with base64 encoding |
 | `FORM_FIELD_TYPE_HTMLAREA` | Trumbowyg WYSIWYG editor |
 | `FORM_FIELD_TYPE_BLOCKAREA` | Block-based content editor |
-| `FORM_FIELD_TYPE_DATETIME` | Element Plus date/time picker |
+| `FORM_FIELD_TYPE_BLOCKEDITOR` | Block editor (rendered via blockarea JS) |
+| `FORM_FIELD_TYPE_HIDDEN` | Hidden input |
+| `FORM_FIELD_TYPE_FILE` | File upload input |
+| `FORM_FIELD_TYPE_REPEATER` | Dynamic list of rows with add/remove/reorder controls |
+| `FORM_FIELD_TYPE_TABLE` | Pre-rendered HTML table (caller provides HTML via `Value`) |
 | `FORM_FIELD_TYPE_RAW` | Raw HTML output (no label) |
+
+## Repeater Fields
+
+Repeater fields let users manage a dynamic list of rows directly in the form.
+
+```go
+// Generic — each row is a single plain text value
+form.NewField(form.FieldOptions{
+    Name:  "image_urls",
+    Label: "Image URLs",
+    Type:  crud.FORM_FIELD_TYPE_REPEATER,
+})
+
+// Typed — each row is a mini-form with multiple sub-fields
+form.NewRepeater(form.RepeaterOptions{
+    Name:  "links",
+    Label: "Links",
+    Fields: []form.FieldInterface{
+        form.NewField(form.FieldOptions{Name: "label", Label: "Label", Type: crud.FORM_FIELD_TYPE_STRING}),
+        form.NewField(form.FieldOptions{Name: "url",   Label: "URL",   Type: crud.FORM_FIELD_TYPE_URL}),
+    },
+})
+```
+
+The browser submits rows using standard bracket notation:
+
+```
+links[0][label]=Home&links[0][url]=https://example.com
+links[1][label]=About&links[1][url]=https://example.com/about
+```
+
+Inside `FuncCreate` / `FuncUpdate`, the repeater field arrives as a JSON array string. Decode it with `json.Unmarshal`:
+
+```go
+FuncUpdate: func(r *http.Request, entityID string, data map[string]string) error {
+    var links []struct {
+        Label string `json:"label"`
+        URL   string `json:"url"`
+    }
+    json.Unmarshal([]byte(data["links"]), &links)
+    return nil
+},
+```
+
+Each row has up/down/remove buttons. Up is disabled on the first row, down on the last.
 
 ## Endpoints
 
