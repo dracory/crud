@@ -85,3 +85,26 @@ func (f *Field) GetFields() []FieldInterface                          { return f
 func (f *Field) GetFuncValuesProcess() func(raw string) []map[string]string {
 	return f.funcValuesProcess
 }
+
+// RepeaterOptions configures a new repeater field instance.
+type RepeaterOptions struct {
+	Label             string
+	Name              string
+	Help              string
+	Fields            []FieldInterface
+	// FuncValuesProcess converts a raw JSON string (from FuncFetchUpdateData)
+	// into []map[string]string rows for Vue binding. Optional.
+	FuncValuesProcess func(raw string) []map[string]string
+}
+
+// NewRepeater creates a repeater FieldInterface for use in crud create/update forms.
+func NewRepeater(opts RepeaterOptions) *Field {
+	return &Field{
+		fieldType:         FORM_FIELD_TYPE_REPEATER,
+		name:              opts.Name,
+		label:             opts.Label,
+		help:              opts.Help,
+		fields:            opts.Fields,
+		funcValuesProcess: opts.FuncValuesProcess,
+	}
+}
