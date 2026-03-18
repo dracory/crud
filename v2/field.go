@@ -185,3 +185,33 @@ func NewHtmlAreaField(name, label string) *Field {
 func NewRawField(value string) *Field {
 	return NewField(FieldOptions{Value: value, Type: FORM_FIELD_TYPE_RAW})
 }
+
+// == Element Plus specific constructors ======================================
+
+func NewColorElField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_COLOR_EL})
+}
+func NewDateElField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_DATE_EL})
+}
+func NewDateTimeElField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_DATETIME_EL})
+}
+func NewInputNumberElField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_INPUT_NUMBER_EL})
+}
+func NewRateElField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_RATE_EL})
+}
+func NewSelectElField(name, label string, options []FieldOption) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_SELECT_EL, Options: options})
+}
+func NewSliderElField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_SLIDER_EL})
+}
+func NewSwitchElField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_SWITCH_EL})
+}
+func NewTimeElField(name, label string) *Field {
+	return NewField(FieldOptions{Name: name, Label: label, Type: FORM_FIELD_TYPE_TIME_EL})
+}

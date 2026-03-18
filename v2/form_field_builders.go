@@ -32,8 +32,7 @@ func (crud *Crud) buildFieldTextarea(field FieldInterface) *hb.Tag {
 }
 
 func (crud *Crud) buildFieldDatetime(field FieldInterface) *hb.Tag {
-	return hb.NewTag(`el-date-picker`).
-		Attr("type", "datetime").
+	return hb.Input().Class("form-control").Type("datetime-local").
 		Attr("v-model", "entityModel."+field.GetName())
 }
 
@@ -200,9 +199,9 @@ func (crud *Crud) buildSubFieldWidget(field FieldInterface, vModel string) *hb.T
 	case FORM_FIELD_TYPE_PASSWORD:
 		return hb.Input().Class("form-control").Type(hb.TYPE_PASSWORD).Attr("v-model", vModel)
 	case FORM_FIELD_TYPE_DATE:
-		return hb.NewTag(`el-date-picker`).Attr("type", "date").Attr("v-model", vModel)
+		return hb.Input().Class("form-control").Type("date").Attr("v-model", vModel)
 	case FORM_FIELD_TYPE_DATETIME:
-		return hb.NewTag(`el-date-picker`).Attr("type", "datetime").Attr("v-model", vModel)
+		return hb.Input().Class("form-control").Type("datetime-local").Attr("v-model", vModel)
 	case FORM_FIELD_TYPE_EMAIL:
 		return hb.Input().Class("form-control").Type("email").Attr("v-model", vModel)
 	case FORM_FIELD_TYPE_TEL:
@@ -217,6 +216,33 @@ func (crud *Crud) buildSubFieldWidget(field FieldInterface, vModel string) *hb.T
 		return hb.Input().Type("hidden").Attr("v-model", vModel)
 	case FORM_FIELD_TYPE_HTMLAREA:
 		return hb.NewTag("trumbowyg").Attr("v-model", vModel).Attr(":config", "trumbowigConfig").Class("form-control")
+	// Element Plus specific
+	case FORM_FIELD_TYPE_COLOR_EL:
+		return hb.NewTag("el-color-picker").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_DATE_EL:
+		return hb.NewTag("el-date-picker").Attr("type", "date").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_DATETIME_EL:
+		return hb.NewTag("el-date-picker").Attr("type", "datetime").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_INPUT_NUMBER_EL:
+		return hb.NewTag("el-input-number").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_RATE_EL:
+		return hb.NewTag("el-rate").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_SELECT_EL:
+		sel := hb.NewTag("el-select").Attr("v-model", vModel).Attr("filterable", "true")
+		opts := field.GetOptions()
+		if field.GetOptionsF() != nil {
+			opts = append(opts, field.GetOptionsF()()...)
+		}
+		for _, opt := range opts {
+			sel.AddChild(hb.NewTag("el-option").Attr("label", opt.Value).Attr("value", opt.Key))
+		}
+		return sel
+	case FORM_FIELD_TYPE_SLIDER_EL:
+		return hb.NewTag("el-slider").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_SWITCH_EL:
+		return hb.NewTag("el-switch").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_TIME_EL:
+		return hb.NewTag("el-time-picker").Attr("v-model", vModel)
 	case FORM_FIELD_TYPE_IMAGE:
 		return hb.Div().Children([]hb.TagInterface{
 			hb.Image("").
@@ -339,9 +365,43 @@ func (crud *Crud) buildFieldWidget(field FieldInterface, fieldID string) *hb.Tag
 		widget = crud.buildFieldTextarea(field)
 	case FORM_FIELD_TYPE_URL:
 		widget = hb.Input().Type("url").Class("form-control").Attr("v-model", "entityModel."+field.GetName())
+	// Element Plus specific
+	case FORM_FIELD_TYPE_COLOR_EL:
+		widget = hb.NewTag("el-color-picker").Attr("v-model", "entityModel."+field.GetName())
+	case FORM_FIELD_TYPE_DATE_EL:
+		widget = hb.NewTag("el-date-picker").Attr("type", "date").Attr("v-model", "entityModel."+field.GetName())
+	case FORM_FIELD_TYPE_DATETIME_EL:
+		widget = hb.NewTag("el-date-picker").Attr("type", "datetime").Attr("v-model", "entityModel."+field.GetName())
+	case FORM_FIELD_TYPE_INPUT_NUMBER_EL:
+		widget = hb.NewTag("el-input-number").Attr("v-model", "entityModel."+field.GetName())
+	case FORM_FIELD_TYPE_RATE_EL:
+		widget = hb.NewTag("el-rate").Attr("v-model", "entityModel."+field.GetName())
+	case FORM_FIELD_TYPE_SELECT_EL:
+		widget = crud.buildFieldSelectEl(field)
+	case FORM_FIELD_TYPE_SLIDER_EL:
+		widget = hb.NewTag("el-slider").Attr("v-model", "entityModel."+field.GetName())
+	case FORM_FIELD_TYPE_SWITCH_EL:
+		widget = hb.NewTag("el-switch").Attr("v-model", "entityModel."+field.GetName())
+	case FORM_FIELD_TYPE_TIME_EL:
+		widget = hb.NewTag("el-time-picker").Attr("v-model", "entityModel."+field.GetName())
 	default: // FORM_FIELD_TYPE_STRING and anything unknown
 		widget = crud.buildFieldInput(field)
 	}
 	widget.ID(fieldID)
 	return widget
+}
+
+// buildFieldSelectEl renders an el-select (filterable) with el-option children.
+func (crud *Crud) buildFieldSelectEl(field FieldInterface) *hb.Tag {
+	sel := hb.NewTag("el-select").
+		Attr("v-model", "entityModel."+field.GetName()).
+		Attr("filterable", "true")
+	opts := field.GetOptions()
+	if field.GetOptionsF() != nil {
+		opts = append(opts, field.GetOptionsF()()...)
+	}
+	for _, opt := range opts {
+		sel.AddChild(hb.NewTag("el-option").Attr("label", opt.Value).Attr("value", opt.Key))
+	}
+	return sel
 }
