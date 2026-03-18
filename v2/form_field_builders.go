@@ -145,28 +145,7 @@ func (crud *Crud) buildRepeaterRowFromFields(fieldName string, fields []form.Fie
 			subLabel = subName
 		}
 		vModel := "entityModel." + fieldName + "[index]." + subName
-
-		var input hb.TagInterface
-		switch subField.GetType() {
-		case FORM_FIELD_TYPE_TEXTAREA:
-			input = hb.TextArea().Class("form-control").Attr("v-model", vModel)
-		case FORM_FIELD_TYPE_NUMBER:
-			input = hb.Input().Class("form-control").Type(hb.TYPE_NUMBER).Attr("v-model", vModel)
-		case FORM_FIELD_TYPE_SELECT:
-			sel := hb.Select().Class("form-select").Attr("v-model", vModel)
-			for _, opt := range subField.GetOptions() {
-				sel.AddChild(hb.Option().Value(opt.Key).Text(opt.Value))
-			}
-			if subField.GetOptionsF() != nil {
-				for _, opt := range subField.GetOptionsF()() {
-					sel.AddChild(hb.Option().Value(opt.Key).Text(opt.Value))
-				}
-			}
-			input = sel
-		default:
-			input = hb.Input().Class("form-control").Attr("v-model", vModel)
-		}
-
+		input := crud.buildSubFieldWidget(subField, vModel)
 		row.AddChild(hb.Div().Class("col").Children([]hb.TagInterface{
 			hb.Label().Class("form-label").
 				Text(subLabel).
@@ -175,6 +154,75 @@ func (crud *Crud) buildRepeaterRowFromFields(fieldName string, fields []form.Fie
 		}))
 	}
 	return row
+}
+
+// buildSubFieldWidget builds the input widget for a repeater sub-field using an explicit vModel path.
+func (crud *Crud) buildSubFieldWidget(field form.FieldInterface, vModel string) *hb.Tag {
+	switch field.GetType() {
+	case FORM_FIELD_TYPE_TEXTAREA, FORM_FIELD_TYPE_BLOCKAREA, FORM_FIELD_TYPE_BLOCKEDITOR:
+		return hb.TextArea().Class("form-control").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_NUMBER:
+		return hb.Input().Class("form-control").Type(hb.TYPE_NUMBER).Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_PASSWORD:
+		return hb.Input().Class("form-control").Type(hb.TYPE_PASSWORD).Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_DATE:
+		return hb.NewTag(`el-date-picker`).Attr("type", "date").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_DATETIME:
+		return hb.NewTag(`el-date-picker`).Attr("type", "datetime").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_EMAIL:
+		return hb.Input().Class("form-control").Type("email").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_TEL:
+		return hb.Input().Class("form-control").Type("tel").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_URL:
+		return hb.Input().Class("form-control").Type("url").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_COLOR:
+		return hb.Input().Class("form-control form-control-color").Type("color").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_CHECKBOX:
+		return hb.Input().Class("form-check-input").Type("checkbox").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_HIDDEN:
+		return hb.Input().Type("hidden").Attr("v-model", vModel)
+	case FORM_FIELD_TYPE_HTMLAREA:
+		return hb.NewTag("trumbowyg").Attr("v-model", vModel).Attr(":config", "trumbowigConfig").Class("form-control")
+	case FORM_FIELD_TYPE_IMAGE:
+		return hb.Div().Children([]hb.TagInterface{
+			hb.Image("").
+				Attr(`v-bind:src`, vModel+`||'https://www.freeiconspng.com/uploads/no-image-icon-11.PNG'`).
+				Style(`width:200px;`),
+			bs.InputGroup().Children([]hb.TagInterface{
+				hb.Input().Type(hb.TYPE_URL).Class("form-control").Attr("v-model", vModel),
+				hb.If(crud.fileManagerURL != "", bs.InputGroupText().Children([]hb.TagInterface{
+					hb.Hyperlink().Text("Browse").Href(crud.fileManagerURL).Target("_blank"),
+				})),
+			}),
+		})
+	case FORM_FIELD_TYPE_RADIO:
+		group := hb.Div().Class("d-flex flex-wrap gap-2")
+		opts := field.GetOptions()
+		if field.GetOptionsF() != nil {
+			opts = append(opts, field.GetOptionsF()()...)
+		}
+		for _, opt := range opts {
+			group.AddChild(hb.Div().Class("form-check").Children([]hb.TagInterface{
+				hb.Input().Type("radio").Class("form-check-input").
+					Attr("v-model", vModel).Value(opt.Key),
+				hb.Label().Class("form-check-label").Text(opt.Value),
+			}))
+		}
+		return group
+	case FORM_FIELD_TYPE_SELECT:
+		sel := hb.Select().Class("form-select").Attr("v-model", vModel)
+		for _, opt := range field.GetOptions() {
+			sel.AddChild(hb.Option().Value(opt.Key).Text(opt.Value))
+		}
+		if field.GetOptionsF() != nil {
+			for _, opt := range field.GetOptionsF()() {
+				sel.AddChild(hb.Option().Value(opt.Key).Text(opt.Value))
+			}
+		}
+		return sel
+	default: // FORM_FIELD_TYPE_STRING and anything else
+		return hb.Input().Class("form-control").Attr("v-model", vModel)
+	}
 }
 
 // buildRepeaterRowGeneric renders a generic key/value row when no sub-fields are declared.
@@ -192,31 +240,74 @@ func (crud *Crud) buildFieldRaw(field form.FieldInterface) *hb.Tag {
 	return hb.Raw(field.GetValue())
 }
 
+func (crud *Crud) buildFieldRadio(field form.FieldInterface) *hb.Tag {
+	group := hb.Div().Class("d-flex flex-wrap gap-3")
+	opts := field.GetOptions()
+	if field.GetOptionsF() != nil {
+		opts = append(opts, field.GetOptionsF()()...)
+	}
+	for _, opt := range opts {
+		id := field.GetName() + "_" + opt.Key
+		group.AddChild(hb.Div().Class("form-check").Children([]hb.TagInterface{
+			hb.Input().Type("radio").Class("form-check-input").
+				ID(id).
+				Attr("v-model", "entityModel."+field.GetName()).
+				Value(opt.Key),
+			hb.Label().Class("form-check-label").Attr("for", id).Text(opt.Value),
+		}))
+	}
+	return group
+}
+
 // buildFieldWidget resolves the correct input widget for a given field type and sets its ID.
 func (crud *Crud) buildFieldWidget(field form.FieldInterface, fieldID string) *hb.Tag {
 	var widget *hb.Tag
 	switch field.GetType() {
+	case FORM_FIELD_TYPE_BLOCKAREA:
+		widget = crud.buildFieldTextarea(field)
+	case FORM_FIELD_TYPE_BLOCKEDITOR:
+		widget = crud.buildFieldTextarea(field) // rendered via blockarea JS init
+	case FORM_FIELD_TYPE_CHECKBOX:
+		widget = hb.Input().Type("checkbox").Class("form-check-input").Attr("v-model", "entityModel."+field.GetName())
+	case FORM_FIELD_TYPE_COLOR:
+		widget = hb.Input().Type("color").Class("form-control form-control-color").Attr("v-model", "entityModel."+field.GetName())
+	case FORM_FIELD_TYPE_DATE:
+		widget = hb.Input().Type("date").Class("form-control").Attr("v-model", "entityModel."+field.GetName())
+	case FORM_FIELD_TYPE_DATETIME:
+		widget = crud.buildFieldDatetime(field)
+	case FORM_FIELD_TYPE_EMAIL:
+		widget = hb.Input().Type("email").Class("form-control").Attr("v-model", "entityModel."+field.GetName())
+	case FORM_FIELD_TYPE_FILE:
+		widget = hb.Input().Type("file").Class("form-control").Attr("v-on:change", "uploadFile($event, '"+field.GetName()+"')")
+	case FORM_FIELD_TYPE_HIDDEN:
+		widget = hb.Input().Type("hidden").Attr("v-model", "entityModel."+field.GetName())
+	case FORM_FIELD_TYPE_HTMLAREA:
+		widget = crud.buildFieldHtmlarea(field)
 	case FORM_FIELD_TYPE_IMAGE:
 		widget = crud.buildFieldImage(field)
 	case FORM_FIELD_TYPE_IMAGE_INLINE:
 		widget = crud.buildFieldImageInline(field)
-	case FORM_FIELD_TYPE_DATETIME:
-		widget = crud.buildFieldDatetime(field)
-	case FORM_FIELD_TYPE_HTMLAREA:
-		widget = crud.buildFieldHtmlarea(field)
 	case FORM_FIELD_TYPE_NUMBER:
 		widget = crud.buildFieldNumber(field)
 	case FORM_FIELD_TYPE_PASSWORD:
 		widget = crud.buildFieldPassword(field)
-	case FORM_FIELD_TYPE_SELECT:
-		widget = crud.buildFieldSelect(field)
-	case FORM_FIELD_TYPE_TEXTAREA, FORM_FIELD_TYPE_BLOCKAREA:
-		widget = crud.buildFieldTextarea(field)
+	case FORM_FIELD_TYPE_RADIO:
+		widget = crud.buildFieldRadio(field)
 	case FORM_FIELD_TYPE_RAW:
 		widget = crud.buildFieldRaw(field)
 	case FORM_FIELD_TYPE_REPEATER:
 		widget = crud.buildFieldRepeater(field)
-	default:
+	case FORM_FIELD_TYPE_SELECT:
+		widget = crud.buildFieldSelect(field)
+	case FORM_FIELD_TYPE_TABLE:
+		widget = hb.Raw(field.GetValue()) // caller provides pre-rendered HTML
+	case FORM_FIELD_TYPE_TEL:
+		widget = hb.Input().Type("tel").Class("form-control").Attr("v-model", "entityModel."+field.GetName())
+	case FORM_FIELD_TYPE_TEXTAREA:
+		widget = crud.buildFieldTextarea(field)
+	case FORM_FIELD_TYPE_URL:
+		widget = hb.Input().Type("url").Class("form-control").Attr("v-model", "entityModel."+field.GetName())
+	default: // FORM_FIELD_TYPE_STRING and anything unknown
 		widget = crud.buildFieldInput(field)
 	}
 	widget.ID(fieldID)
