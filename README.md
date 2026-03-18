@@ -2,6 +2,20 @@
 
 A server-side rendered CRUD (Create, Read, Update, Trash) interface for Go web applications. Generates Bootstrap 5 admin pages with Vue.js 3 interactivity for managing entities.
 
+## Screenshots
+
+| Manager | Create |
+|---------|--------|
+| ![Manager](v2/screenshots/manager.png) | ![Create](v2/screenshots/create.png) |
+
+| Read | Update |
+|------|--------|
+| ![Read](v2/screenshots/read.png) | ![Update](v2/screenshots/update.png) |
+
+| Delete |
+|--------|
+| ![Delete](v2/screenshots/delete.png) |
+
 ## Versions
 
 ### v2 (Current)
@@ -20,8 +34,8 @@ Key improvements over v1:
 
 - **Security** — XSS prevention via JSON-encoded inline JS values, HTTP method enforcement on mutating endpoints, nil safety on all callbacks, optional CSRF validation
 - **Architecture** — Controller-based routing, separated concerns across dedicated files
-- **Form system** — Uses `github.com/dracory/form` package with 11 field types
-- **HTMX integration** — Create modal loaded via HTMX instead of inline Vue.js
+- **Form system** — Built-in field types with 23 field type constants and fluent builders
+- **Vue.js integration** — Create modal fetched via `fetch()` and mounted as a Vue app
 - **Middleware hooks** — `FuncBeforeAction` / `FuncAfterAction` for per-action authorization and audit logging
 - **Server-side pagination** — Configurable `PageSize` and `FuncRowsCount` for large datasets
 - **Structured logging** — Optional `FuncLog` callback for centralized request logging

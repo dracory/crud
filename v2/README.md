@@ -2,6 +2,20 @@
 
 A server-side rendered CRUD interface for Go web applications. Generates Bootstrap 5 admin pages with Vue.js 3 interactivity for managing entities through Create, Read, Update, and Trash operations.
 
+## Screenshots
+
+| Manager | Create |
+|---------|--------|
+| ![Manager](screenshots/manager.png) | ![Create](screenshots/create.png) |
+
+| Read | Update |
+|------|--------|
+| ![Read](screenshots/read.png) | ![Update](screenshots/update.png) |
+
+| Delete |
+|--------|
+| ![Delete](screenshots/delete.png) |
+
 ## Installation
 
 ```bash
@@ -93,7 +107,7 @@ func main() {
 ## Features
 
 - **Entity Manager** - Sortable DataTable listing with view, edit, and trash actions
-- **Create Modal** - Bootstrap modal loaded via HTMX with form validation
+- **Create Modal** - Bootstrap modal fetched via `fetch()` with Vue.js form validation
 - **Read View** - Read-only entity detail page with `KeyValue` pairs
 - **Update Form** - Vue.js reactive form with two-way data binding
 - **Trash** - Soft-delete with confirmation modal
@@ -339,7 +353,6 @@ The default layout includes (via CDN):
 - jQuery DataTables 1.13.4
 - Trumbowyg 2.27.3 (WYSIWYG editor)
 - Element Plus 2.3.8 (date picker)
-- HTMX 2.0.0
 
 ## Security Notes
 
