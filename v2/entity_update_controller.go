@@ -94,7 +94,26 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 
 	content := container.ToHTML()
 
-	jsonCustomValues, err := json.Marshal(customAttrValues)
+	// Build a map[string]any so repeater fields can contribute structured values
+	// ([]map[string]string) while all other fields remain plain strings.
+	processedValues := make(map[string]any, len(customAttrValues))
+	for k, v := range customAttrValues {
+		processedValues[k] = v
+	}
+	for _, field := range controller.crud.updateFields {
+		fn := field.GetFuncValuesProcess()
+		if fn == nil {
+			continue
+		}
+		name := field.GetName()
+		if name == "" {
+			continue
+		}
+		raw, _ := customAttrValues[name]
+		processedValues[name] = fn(raw)
+	}
+
+	jsonCustomValues, err := json.Marshal(processedValues)
 	if err != nil {
 		api.Respond(w, r, api.Error("Failed to encode form data"))
 		return
