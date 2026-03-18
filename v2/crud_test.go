@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dracory/form"
+	
 )
 
 // ==========================================================================
@@ -159,10 +159,10 @@ func TestListCreateNames_Empty(t *testing.T) {
 
 func TestListCreateNames_SkipsEmptyNames(t *testing.T) {
 	crud := Crud{
-		createFields: []form.FieldInterface{
-			form.NewField(form.FieldOptions{Name: "title"}),
-			form.NewField(form.FieldOptions{Name: ""}),
-			form.NewField(form.FieldOptions{Name: "description"}),
+		createFields: []FieldInterface{
+			NewField(FieldOptions{Name: "title"}),
+			NewField(FieldOptions{Name: ""}),
+			NewField(FieldOptions{Name: "description"}),
 		},
 	}
 	names := crud.listCreateNames()
@@ -187,10 +187,10 @@ func TestListUpdateNames_Empty(t *testing.T) {
 
 func TestListUpdateNames_SkipsEmptyNames(t *testing.T) {
 	crud := Crud{
-		updateFields: []form.FieldInterface{
-			form.NewField(form.FieldOptions{Name: "name"}),
-			form.NewField(form.FieldOptions{Name: ""}),
-			form.NewField(form.FieldOptions{Name: "status"}),
+		updateFields: []FieldInterface{
+			NewField(FieldOptions{Name: "name"}),
+			NewField(FieldOptions{Name: ""}),
+			NewField(FieldOptions{Name: "status"}),
 		},
 	}
 	names := crud.listUpdateNames()
@@ -217,7 +217,7 @@ func newTestCrud() Crud {
 		homeURL:            "/",
 		columnNames:        []string{"ID", "Name"},
 		funcRows:           func(r *http.Request) ([]Row, error) { return []Row{}, nil },
-		updateFields:       []form.FieldInterface{},
+		updateFields:       []FieldInterface{},
 	}
 }
 
@@ -409,8 +409,8 @@ func TestHandler_CSRF_AllowsPostWhenValidationPasses(t *testing.T) {
 	crud.funcValidateCSRF = func(r *http.Request) error {
 		return nil
 	}
-	crud.createFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	crud.createFields = []FieldInterface{
+		NewField(FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
 	}
 
 	formData := "title=Test"
@@ -456,8 +456,8 @@ func TestHandler_CSRF_SkippedWhenNil(t *testing.T) {
 	crud.funcCreate = func(r *http.Request, data map[string]string) (string, error) {
 		return "1", nil
 	}
-	crud.createFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	crud.createFields = []FieldInterface{
+		NewField(FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
 	}
 
 	formData := "title=Test"

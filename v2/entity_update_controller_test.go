@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dracory/form"
+	
 )
 
 func TestUpdate_Page_MissingEntityID(t *testing.T) {
@@ -78,8 +78,8 @@ func TestUpdate_Page_FetchDataError(t *testing.T) {
 
 func TestUpdate_Page_Success(t *testing.T) {
 	crud := newTestCrud()
-	crud.updateFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{
+	crud.updateFields = []FieldInterface{
+		NewField(FieldOptions{
 			Name:  "title",
 			Label: "Title",
 			Type:  FORM_FIELD_TYPE_STRING,
@@ -145,8 +145,8 @@ func TestUpdate_PageSave_MissingEntityID(t *testing.T) {
 
 func TestUpdate_PageSave_RequiredFieldEmpty(t *testing.T) {
 	crud := newTestCrud()
-	crud.updateFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{
+	crud.updateFields = []FieldInterface{
+		NewField(FieldOptions{
 			Name:     "title",
 			Label:    "Title",
 			Type:     FORM_FIELD_TYPE_STRING,
@@ -177,8 +177,8 @@ func TestUpdate_PageSave_RequiredFieldEmpty(t *testing.T) {
 
 func TestUpdate_PageSave_FuncUpdateError(t *testing.T) {
 	crud := newTestCrud()
-	crud.updateFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{
+	crud.updateFields = []FieldInterface{
+		NewField(FieldOptions{
 			Name:  "title",
 			Label: "Title",
 			Type:  FORM_FIELD_TYPE_STRING,
@@ -212,8 +212,8 @@ func TestUpdate_PageSave_Success(t *testing.T) {
 	var savedID string
 	var savedData map[string]string
 	crud := newTestCrud()
-	crud.updateFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{
+	crud.updateFields = []FieldInterface{
+		NewField(FieldOptions{
 			Name:  "title",
 			Label: "Title",
 			Type:  FORM_FIELD_TYPE_STRING,
@@ -253,8 +253,8 @@ func TestUpdate_PageSave_Success(t *testing.T) {
 
 func TestUpdate_Page_DefaultRedirectURL(t *testing.T) {
 	crud := newTestCrud()
-	crud.updateFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	crud.updateFields = []FieldInterface{
+		NewField(FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
 	}
 	crud.funcFetchUpdateData = func(r *http.Request, entityID string) (map[string]string, error) {
 		return map[string]string{"title": "Test"}, nil
@@ -276,8 +276,8 @@ func TestUpdate_Page_DefaultRedirectURL(t *testing.T) {
 func TestUpdate_Page_CustomRedirectURL(t *testing.T) {
 	crud := newTestCrud()
 	crud.updateRedirectURL = "/custom/after-save"
-	crud.updateFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	crud.updateFields = []FieldInterface{
+		NewField(FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
 	}
 	crud.funcFetchUpdateData = func(r *http.Request, entityID string) (map[string]string, error) {
 		return map[string]string{"title": "Test"}, nil
@@ -298,9 +298,9 @@ func TestUpdate_Page_CustomRedirectURL(t *testing.T) {
 func TestUpdate_PageSave_RepeaterFieldCollected(t *testing.T) {
 	var savedData map[string]string
 	crud := newTestCrud()
-	crud.updateFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
-		form.NewField(form.FieldOptions{Name: "image_urls", Type: FORM_FIELD_TYPE_REPEATER}),
+	crud.updateFields = []FieldInterface{
+		NewField(FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+		NewField(FieldOptions{Name: "image_urls", Type: FORM_FIELD_TYPE_REPEATER}),
 	}
 	crud.funcUpdate = func(r *http.Request, entityID string, data map[string]string) error {
 		savedData = data
@@ -342,8 +342,8 @@ func TestUpdate_PageSave_RepeaterFieldCollected(t *testing.T) {
 
 func TestUpdate_Page_ContainsMoveRepeaterMethods(t *testing.T) {
 	crud := newTestCrud()
-	crud.updateFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	crud.updateFields = []FieldInterface{
+		NewField(FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
 	}
 	crud.funcFetchUpdateData = func(r *http.Request, entityID string) (map[string]string, error) {
 		return map[string]string{"title": "Test"}, nil

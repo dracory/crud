@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dracory/form"
+	
 )
 
 func TestManager_Page_Success(t *testing.T) {
@@ -90,8 +90,8 @@ func TestManager_Page_EmptyRows(t *testing.T) {
 
 func TestManager_Page_WithCreateFields(t *testing.T) {
 	crud := newTestCrud()
-	crud.createFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{
+	crud.createFields = []FieldInterface{
+		NewField(FieldOptions{
 			Name:  "title",
 			Label: "Title",
 			Type:  FORM_FIELD_TYPE_STRING,

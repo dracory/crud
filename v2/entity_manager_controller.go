@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/dracory/cdn"
-	"github.com/dracory/form"
 	"github.com/dracory/hb"
 	"github.com/dracory/req"
 	"github.com/samber/lo"
@@ -167,7 +166,7 @@ func (controller *entityManagerController) page(w http.ResponseWriter, r *http.R
 	}
 
 	customAttrValues := map[string]string{}
-	lo.ForEach(controller.crud.createFields, func(field form.FieldInterface, index int) {
+	lo.ForEach(controller.crud.createFields, func(field FieldInterface, index int) {
 		customAttrValues[field.GetName()] = field.GetValue()
 	})
 	jsonCustomValues, err := json.Marshal(customAttrValues)

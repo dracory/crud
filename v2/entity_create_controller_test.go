@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dracory/form"
+	
 )
 
 func TestCreate_ModalSave_MethodNotAllowed_GET(t *testing.T) {
@@ -59,8 +59,8 @@ func TestCreate_ModalSave_NilFuncCreate(t *testing.T) {
 
 func TestCreate_ModalSave_RequiredFieldEmpty(t *testing.T) {
 	crud := newTestCrud()
-	crud.createFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{
+	crud.createFields = []FieldInterface{
+		NewField(FieldOptions{
 			Name:     "title",
 			Label:    "Title",
 			Type:     FORM_FIELD_TYPE_STRING,
@@ -95,8 +95,8 @@ func TestCreate_ModalSave_RequiredFieldEmpty(t *testing.T) {
 
 func TestCreate_ModalSave_FuncCreateError(t *testing.T) {
 	crud := newTestCrud()
-	crud.createFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{
+	crud.createFields = []FieldInterface{
+		NewField(FieldOptions{
 			Name:  "title",
 			Label: "Title",
 			Type:  FORM_FIELD_TYPE_STRING,
@@ -131,8 +131,8 @@ func TestCreate_ModalSave_FuncCreateError(t *testing.T) {
 func TestCreate_ModalSave_Success(t *testing.T) {
 	var receivedData map[string]string
 	crud := newTestCrud()
-	crud.createFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{
+	crud.createFields = []FieldInterface{
+		NewField(FieldOptions{
 			Name:  "title",
 			Label: "Title",
 			Type:  FORM_FIELD_TYPE_STRING,
@@ -177,8 +177,8 @@ func TestCreate_ModalSave_Success(t *testing.T) {
 
 func TestCreate_ModalSave_DefaultRedirectURL(t *testing.T) {
 	crud := newTestCrud()
-	crud.createFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	crud.createFields = []FieldInterface{
+		NewField(FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
 	}
 	crud.funcCreate = func(r *http.Request, data map[string]string) (string, error) {
 		return "abc-123", nil
@@ -205,8 +205,8 @@ func TestCreate_ModalSave_DefaultRedirectURL(t *testing.T) {
 func TestCreate_ModalSave_CustomRedirectURL(t *testing.T) {
 	crud := newTestCrud()
 	crud.createRedirectURL = "/custom/redirect"
-	crud.createFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	crud.createFields = []FieldInterface{
+		NewField(FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
 	}
 	crud.funcCreate = func(r *http.Request, data map[string]string) (string, error) {
 		return "abc-123", nil
@@ -232,8 +232,8 @@ func TestCreate_ModalSave_CustomRedirectURL(t *testing.T) {
 
 func TestCreate_ModalShow_ReturnsHTML(t *testing.T) {
 	crud := newTestCrud()
-	crud.createFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{
+	crud.createFields = []FieldInterface{
+		NewField(FieldOptions{
 			Name:  "title",
 			Label: "Title",
 			Type:  FORM_FIELD_TYPE_STRING,
@@ -258,9 +258,9 @@ func TestCreate_ModalShow_ReturnsHTML(t *testing.T) {
 func TestCreate_ModalSave_RepeaterFieldCollected(t *testing.T) {
 	var savedData map[string]string
 	crud := newTestCrud()
-	crud.createFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
-		form.NewField(form.FieldOptions{Name: "tags", Type: FORM_FIELD_TYPE_REPEATER}),
+	crud.createFields = []FieldInterface{
+		NewField(FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+		NewField(FieldOptions{Name: "tags", Type: FORM_FIELD_TYPE_REPEATER}),
 	}
 	crud.funcCreate = func(r *http.Request, data map[string]string) (string, error) {
 		savedData = data
@@ -299,8 +299,8 @@ func TestCreate_ModalSave_RepeaterFieldCollected(t *testing.T) {
 
 func TestCreate_Modal_ContainsMoveRepeaterMethods(t *testing.T) {
 	crud := newTestCrud()
-	crud.createFields = []form.FieldInterface{
-		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	crud.createFields = []FieldInterface{
+		NewField(FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
 	}
 	ctrl := crud.newEntityCreateController()
 

@@ -2,50 +2,49 @@ package crud
 
 import (
 	"github.com/dracory/bs"
-	"github.com/dracory/form"
 	"github.com/dracory/hb"
 )
 
-func (crud *Crud) buildFieldInput(field form.FieldInterface) *hb.Tag {
+func (crud *Crud) buildFieldInput(field FieldInterface) *hb.Tag {
 	return hb.Input().
 		Class("form-control").
 		Attr("v-model", "entityModel."+field.GetName())
 }
 
-func (crud *Crud) buildFieldNumber(field form.FieldInterface) *hb.Tag {
+func (crud *Crud) buildFieldNumber(field FieldInterface) *hb.Tag {
 	return hb.Input().
 		Class("form-control").
 		Type(hb.TYPE_NUMBER).
 		Attr("v-model", "entityModel."+field.GetName())
 }
 
-func (crud *Crud) buildFieldPassword(field form.FieldInterface) *hb.Tag {
+func (crud *Crud) buildFieldPassword(field FieldInterface) *hb.Tag {
 	return hb.Input().
 		Class("form-control").
 		Type(hb.TYPE_PASSWORD).
 		Attr("v-model", "entityModel."+field.GetName())
 }
 
-func (crud *Crud) buildFieldTextarea(field form.FieldInterface) *hb.Tag {
+func (crud *Crud) buildFieldTextarea(field FieldInterface) *hb.Tag {
 	return hb.TextArea().
 		Class("form-control").
 		Attr("v-model", "entityModel."+field.GetName())
 }
 
-func (crud *Crud) buildFieldDatetime(field form.FieldInterface) *hb.Tag {
+func (crud *Crud) buildFieldDatetime(field FieldInterface) *hb.Tag {
 	return hb.NewTag(`el-date-picker`).
 		Attr("type", "datetime").
 		Attr("v-model", "entityModel."+field.GetName())
 }
 
-func (crud *Crud) buildFieldHtmlarea(field form.FieldInterface) *hb.Tag {
+func (crud *Crud) buildFieldHtmlarea(field FieldInterface) *hb.Tag {
 	return hb.NewTag("trumbowyg").
 		Attr("v-model", "entityModel."+field.GetName()).
 		Attr(":config", "trumbowigConfig").
 		Class("form-control")
 }
 
-func (crud *Crud) buildFieldSelect(field form.FieldInterface) *hb.Tag {
+func (crud *Crud) buildFieldSelect(field FieldInterface) *hb.Tag {
 	sel := hb.Select().Class("form-select").Attr("v-model", "entityModel."+field.GetName())
 	for _, opt := range field.GetOptions() {
 		sel.AddChild(hb.Option().Value(opt.Key).Text(opt.Value))
@@ -58,7 +57,7 @@ func (crud *Crud) buildFieldSelect(field form.FieldInterface) *hb.Tag {
 	return sel
 }
 
-func (crud *Crud) buildFieldImage(field form.FieldInterface) *hb.Tag {
+func (crud *Crud) buildFieldImage(field FieldInterface) *hb.Tag {
 	fieldName := field.GetName()
 	return hb.Div().Children([]hb.TagInterface{
 		hb.Image("").
@@ -73,7 +72,7 @@ func (crud *Crud) buildFieldImage(field form.FieldInterface) *hb.Tag {
 	})
 }
 
-func (crud *Crud) buildFieldImageInline(field form.FieldInterface) *hb.Tag {
+func (crud *Crud) buildFieldImageInline(field FieldInterface) *hb.Tag {
 	fieldName := field.GetName()
 	return hb.Div().Children([]hb.TagInterface{
 		hb.Image("").
@@ -108,7 +107,7 @@ func (crud *Crud) buildFieldImageInline(field form.FieldInterface) *hb.Tag {
 // app: addRepeaterItem(fieldName, item) and removeRepeaterItem(fieldName, index).
 // These are provided by all three Vue apps in this package (EntityManager,
 // EntityCreate, EntityUpdate).
-func (crud *Crud) buildFieldRepeater(field form.FieldInterface) *hb.Tag {
+func (crud *Crud) buildFieldRepeater(field FieldInterface) *hb.Tag {
 	fieldName := field.GetName()
 
 	// Typed sub-fields or generic single-value fallback.
@@ -165,7 +164,7 @@ func (crud *Crud) buildFieldRepeater(field form.FieldInterface) *hb.Tag {
 // independently within the row object.
 //
 // All field types supported by buildSubFieldWidget are available as sub-fields.
-func (crud *Crud) buildRepeaterRowFromFields(fieldName string, fields []form.FieldInterface) *hb.Tag {
+func (crud *Crud) buildRepeaterRowFromFields(fieldName string, fields []FieldInterface) *hb.Tag {
 	row := hb.Div().Class("repeater-item-content row g-2")
 	for _, subField := range fields {
 		subName := subField.GetName()
@@ -192,7 +191,7 @@ func (crud *Crud) buildRepeaterRowFromFields(fieldName string, fields []form.Fie
 // Supported types: string, number, password, email, tel, url, date, datetime,
 // color, checkbox, hidden, htmlarea, image, radio, select, textarea, blockarea,
 // blockeditor. Anything else falls back to a plain text input.
-func (crud *Crud) buildSubFieldWidget(field form.FieldInterface, vModel string) *hb.Tag {
+func (crud *Crud) buildSubFieldWidget(field FieldInterface, vModel string) *hb.Tag {
 	switch field.GetType() {
 	case FORM_FIELD_TYPE_TEXTAREA, FORM_FIELD_TYPE_BLOCKAREA, FORM_FIELD_TYPE_BLOCKEDITOR:
 		return hb.TextArea().Class("form-control").Attr("v-model", vModel)
@@ -269,11 +268,11 @@ func (crud *Crud) buildRepeaterRowGeneric(fieldName string) *hb.Tag {
 		Attr("v-model", "entityModel."+fieldName+"[index]")
 }
 
-func (crud *Crud) buildFieldRaw(field form.FieldInterface) *hb.Tag {
+func (crud *Crud) buildFieldRaw(field FieldInterface) *hb.Tag {
 	return hb.Raw(field.GetValue())
 }
 
-func (crud *Crud) buildFieldRadio(field form.FieldInterface) *hb.Tag {
+func (crud *Crud) buildFieldRadio(field FieldInterface) *hb.Tag {
 	group := hb.Div().Class("d-flex flex-wrap gap-3")
 	opts := field.GetOptions()
 	if field.GetOptionsF() != nil {
@@ -293,7 +292,7 @@ func (crud *Crud) buildFieldRadio(field form.FieldInterface) *hb.Tag {
 }
 
 // buildFieldWidget resolves the correct input widget for a given field type and sets its ID.
-func (crud *Crud) buildFieldWidget(field form.FieldInterface, fieldID string) *hb.Tag {
+func (crud *Crud) buildFieldWidget(field FieldInterface, fieldID string) *hb.Tag {
 	var widget *hb.Tag
 	switch field.GetType() {
 	case FORM_FIELD_TYPE_BLOCKAREA:

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/dracory/form"
+	
 )
 
 func TestNew_MissingFuncRows(t *testing.T) {
@@ -32,8 +32,8 @@ func TestNew_MissingUpdateFields(t *testing.T) {
 func TestNew_UpdateFieldsWithoutFuncUpdate(t *testing.T) {
 	_, err := New(Config{
 		FuncRows: func(r *http.Request) ([]Row, error) { return nil, nil },
-		UpdateFields: []form.FieldInterface{
-			form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+		UpdateFields: []FieldInterface{
+			NewField(FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
 		},
 	})
 	if err == nil {
@@ -47,8 +47,8 @@ func TestNew_UpdateFieldsWithoutFuncUpdate(t *testing.T) {
 func TestNew_UpdateFieldsWithoutFuncFetchUpdateData(t *testing.T) {
 	_, err := New(Config{
 		FuncRows: func(r *http.Request) ([]Row, error) { return nil, nil },
-		UpdateFields: []form.FieldInterface{
-			form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+		UpdateFields: []FieldInterface{
+			NewField(FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
 		},
 		FuncUpdate: func(r *http.Request, entityID string, data map[string]string) error { return nil },
 	})
@@ -63,7 +63,7 @@ func TestNew_UpdateFieldsWithoutFuncFetchUpdateData(t *testing.T) {
 func TestNew_EmptyUpdateFieldsNoFuncUpdateRequired(t *testing.T) {
 	_, err := New(Config{
 		FuncRows:     func(r *http.Request) ([]Row, error) { return nil, nil },
-		UpdateFields: []form.FieldInterface{},
+		UpdateFields: []FieldInterface{},
 	})
 	if err != nil {
 		t.Fatalf("expected no error with empty UpdateFields, got: %s", err.Error())
@@ -82,8 +82,8 @@ func TestNew_ValidFullConfig(t *testing.T) {
 		FuncFetchUpdateData: func(r *http.Request, entityID string) (map[string]string, error) {
 			return map[string]string{}, nil
 		},
-		UpdateFields: []form.FieldInterface{
-			form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+		UpdateFields: []FieldInterface{
+			NewField(FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
 		},
 	})
 	if err != nil {
@@ -110,11 +110,11 @@ func TestNew_ValidFullConfig(t *testing.T) {
 }
 
 func TestNew_ConfigFieldsAreCopied(t *testing.T) {
-	createFields := []form.FieldInterface{
-		form.NewField(form.FieldOptions{Name: "name", Type: FORM_FIELD_TYPE_STRING}),
+	createFields := []FieldInterface{
+		NewField(FieldOptions{Name: "name", Type: FORM_FIELD_TYPE_STRING}),
 	}
-	updateFields := []form.FieldInterface{
-		form.NewField(form.FieldOptions{Name: "name", Type: FORM_FIELD_TYPE_STRING}),
+	updateFields := []FieldInterface{
+		NewField(FieldOptions{Name: "name", Type: FORM_FIELD_TYPE_STRING}),
 	}
 
 	crud, err := New(Config{

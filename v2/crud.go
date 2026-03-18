@@ -1,4 +1,4 @@
-﻿package crud
+package crud
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/dracory/api"
 	"github.com/dracory/cdn"
-	"github.com/dracory/form"
+	
 	"github.com/dracory/hb"
 	"github.com/dracory/req"
 	"github.com/dracory/str"
@@ -18,7 +18,7 @@ import (
 
 type Crud struct {
 	columnNames         []string
-	createFields        []form.FieldInterface
+	createFields        []FieldInterface
 	endpoint            string
 	entityNamePlural    string
 	entityNameSingular  string
@@ -34,7 +34,7 @@ type Crud struct {
 	homeURL             string
 	createRedirectURL   string
 	updateRedirectURL   string
-	updateFields        []form.FieldInterface
+	updateFields        []FieldInterface
 	pageSize            int
 	funcRowsCount       func(r *http.Request) (int64, error)
 	funcBeforeAction    func(w http.ResponseWriter, r *http.Request, action string) bool
@@ -221,7 +221,7 @@ func (crud *Crud) layout(w http.ResponseWriter, r *http.Request, title string, c
 }
 
 // form generates a form group for each field, delegating widget creation to buildFieldWidget.
-func (crud *Crud) form(fields []form.FieldInterface) []hb.TagInterface {
+func (crud *Crud) form(fields []FieldInterface) []hb.TagInterface {
 	tags := []hb.TagInterface{}
 	for _, field := range fields {
 		fieldID := field.GetID()
@@ -284,8 +284,8 @@ func (crud *Crud) listUpdateNames() []string {
 }
 
 // listFieldNames collects all field names from a slice of fields.
-// Repeater fields are included — their value arrives as a JSON-encoded string.
-func listFieldNames(fields []form.FieldInterface) []string {
+// Repeater fields are included; their value arrives as a JSON-encoded string.
+func listFieldNames(fields []FieldInterface) []string {
 	names := []string{}
 	for _, field := range fields {
 		if field.GetName() == "" {
@@ -358,7 +358,7 @@ func collectRepeaterField(r *http.Request, fieldName string) string {
 }
 
 // validateRepeaterFields validates repeater fields in the form data.
-func (crud *Crud) validateRepeaterFields(data map[string]string, fields []form.FieldInterface) error {
+func (crud *Crud) validateRepeaterFields(data map[string]string, fields []FieldInterface) error {
 	for _, field := range fields {
 		if field.GetType() != FORM_FIELD_TYPE_REPEATER || !field.GetRequired() {
 			continue

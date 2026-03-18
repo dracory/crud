@@ -4,13 +4,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dracory/form"
+	
 )
 
 func TestRepeaterFieldRendering(t *testing.T) {
 	crud := &Crud{
-		createFields: []form.FieldInterface{
-			form.NewField(form.FieldOptions{
+		createFields: []FieldInterface{
+			NewField(FieldOptions{
 				Name:     "features",
 				Label:    "Product Features",
 				Type:     FORM_FIELD_TYPE_REPEATER,
@@ -55,7 +55,7 @@ func TestRepeaterFieldValidation(t *testing.T) {
 	crud := &Crud{}
 
 	// Test required repeater field validation
-	requiredRepeaterField := form.NewField(form.FieldOptions{
+	requiredRepeaterField := NewField(FieldOptions{
 		Name:     "features",
 		Label:    "Product Features",
 		Type:     FORM_FIELD_TYPE_REPEATER,
@@ -66,7 +66,7 @@ func TestRepeaterFieldValidation(t *testing.T) {
 	data := map[string]string{
 		"features": "",
 	}
-	err := crud.validateRepeaterFields(data, []form.FieldInterface{requiredRepeaterField})
+	err := crud.validateRepeaterFields(data, []FieldInterface{requiredRepeaterField})
 	if err == nil {
 		t.Error("Should return error for empty repeater field")
 	}
@@ -76,7 +76,7 @@ func TestRepeaterFieldValidation(t *testing.T) {
 
 	// Test with empty array
 	data["features"] = "[]"
-	err = crud.validateRepeaterFields(data, []form.FieldInterface{requiredRepeaterField})
+	err = crud.validateRepeaterFields(data, []FieldInterface{requiredRepeaterField})
 	if err == nil {
 		t.Error("Should return error for empty array repeater field")
 	}
@@ -86,13 +86,13 @@ func TestRepeaterFieldValidation(t *testing.T) {
 
 	// Test with valid data
 	data["features"] = `[{"name": "Feature 1", "description": "Description 1"}]`
-	err = crud.validateRepeaterFields(data, []form.FieldInterface{requiredRepeaterField})
+	err = crud.validateRepeaterFields(data, []FieldInterface{requiredRepeaterField})
 	if err != nil {
 		t.Errorf("Should not return error for valid repeater field data: %v", err)
 	}
 
 	// Test with non-required repeater field
-	nonRequiredRepeaterField := form.NewField(form.FieldOptions{
+	nonRequiredRepeaterField := NewField(FieldOptions{
 		Name:     "optional_features",
 		Label:    "Optional Features",
 		Type:     FORM_FIELD_TYPE_REPEATER,
@@ -100,7 +100,7 @@ func TestRepeaterFieldValidation(t *testing.T) {
 	})
 
 	data["optional_features"] = ""
-	err = crud.validateRepeaterFields(data, []form.FieldInterface{nonRequiredRepeaterField})
+	err = crud.validateRepeaterFields(data, []FieldInterface{nonRequiredRepeaterField})
 	if err != nil {
 		t.Errorf("Should not return error for empty non-required repeater field: %v", err)
 	}
@@ -108,19 +108,19 @@ func TestRepeaterFieldValidation(t *testing.T) {
 
 func TestRepeaterFieldWithMultipleFields(t *testing.T) {
 	crud := &Crud{
-		createFields: []form.FieldInterface{
-			form.NewField(form.FieldOptions{
+		createFields: []FieldInterface{
+			NewField(FieldOptions{
 				Name:  "name",
 				Label: "Product Name",
 				Type:  FORM_FIELD_TYPE_STRING,
 			}),
-			form.NewField(form.FieldOptions{
+			NewField(FieldOptions{
 				Name:     "features",
 				Label:    "Product Features",
 				Type:     FORM_FIELD_TYPE_REPEATER,
 				Required: true,
 			}),
-			form.NewField(form.FieldOptions{
+			NewField(FieldOptions{
 				Name:  "description",
 				Label: "Description",
 				Type:  FORM_FIELD_TYPE_TEXTAREA,
@@ -147,8 +147,8 @@ func TestRepeaterFieldWithMultipleFields(t *testing.T) {
 
 func TestRepeaterFieldRenderingWithHelpText(t *testing.T) {
 	crud := &Crud{
-		createFields: []form.FieldInterface{
-			form.NewField(form.FieldOptions{
+		createFields: []FieldInterface{
+			NewField(FieldOptions{
 				Name:     "features",
 				Label:    "Product Features",
 				Type:     FORM_FIELD_TYPE_REPEATER,
@@ -172,8 +172,8 @@ func TestRepeaterFieldRenderingWithHelpText(t *testing.T) {
 
 func TestRepeaterFieldRenderingWithRequiredIndicator(t *testing.T) {
 	crud := &Crud{
-		createFields: []form.FieldInterface{
-			form.NewField(form.FieldOptions{
+		createFields: []FieldInterface{
+			NewField(FieldOptions{
 				Name:     "features",
 				Label:    "Product Features",
 				Type:     FORM_FIELD_TYPE_REPEATER,
@@ -197,8 +197,8 @@ func TestRepeaterFieldRenderingWithRequiredIndicator(t *testing.T) {
 func TestRepeaterFieldVueMethodsIntegration(t *testing.T) {
 	// Test that the Vue.js methods are properly integrated
 	crud := &Crud{
-		createFields: []form.FieldInterface{
-			form.NewField(form.FieldOptions{
+		createFields: []FieldInterface{
+			NewField(FieldOptions{
 				Name:     "features",
 				Label:    "Product Features",
 				Type:     FORM_FIELD_TYPE_REPEATER,
@@ -225,8 +225,8 @@ func TestRepeaterFieldVueMethodsIntegration(t *testing.T) {
 
 func TestRepeaterFieldUpDownButtons(t *testing.T) {
 	crud := &Crud{
-		createFields: []form.FieldInterface{
-			form.NewField(form.FieldOptions{
+		createFields: []FieldInterface{
+			NewField(FieldOptions{
 				Name:  "items",
 				Label: "Items",
 				Type:  FORM_FIELD_TYPE_REPEATER,
@@ -261,8 +261,8 @@ func TestRepeaterFieldUpDownButtons(t *testing.T) {
 
 func TestRepeaterFieldAddItemPassesEmptyObject(t *testing.T) {
 	crud := &Crud{
-		createFields: []form.FieldInterface{
-			form.NewField(form.FieldOptions{
+		createFields: []FieldInterface{
+			NewField(FieldOptions{
 				Name:  "links",
 				Label: "Links",
 				Type:  FORM_FIELD_TYPE_REPEATER,
@@ -295,8 +295,8 @@ func TestRepeaterFieldDataStructure(t *testing.T) {
 	}
 
 	// Test that the data structure is valid JSON
-	err := crud.validateRepeaterFields(formData, []form.FieldInterface{
-		form.NewField(form.FieldOptions{
+	err := crud.validateRepeaterFields(formData, []FieldInterface{
+		NewField(FieldOptions{
 			Name:     "features",
 			Label:    "Product Features",
 			Type:     FORM_FIELD_TYPE_REPEATER,
@@ -313,7 +313,7 @@ func TestRepeaterFieldDataStructure(t *testing.T) {
 func TestRepeaterFieldEdgeCases(t *testing.T) {
 	crud := &Crud{}
 
-	requiredRepeaterField := form.NewField(form.FieldOptions{
+	requiredRepeaterField := NewField(FieldOptions{
 		Name:     "features",
 		Label:    "Product Features",
 		Type:     FORM_FIELD_TYPE_REPEATER,
@@ -344,7 +344,7 @@ func TestRepeaterFieldEdgeCases(t *testing.T) {
 				"features": tc.data,
 			}
 
-			err := crud.validateRepeaterFields(data, []form.FieldInterface{requiredRepeaterField})
+			err := crud.validateRepeaterFields(data, []FieldInterface{requiredRepeaterField})
 
 			if tc.shouldErr {
 				if err == nil {

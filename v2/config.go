@@ -3,13 +3,12 @@ package crud
 import (
 	"net/http"
 
-	"github.com/dracory/form"
 	"github.com/dracory/hb"
 )
 
 type Config struct {
 	ColumnNames         []string
-	CreateFields        []form.FieldInterface
+	CreateFields        []FieldInterface
 	Endpoint            string
 	EntityNamePlural    string
 	EntityNameSingular  string
@@ -24,7 +23,7 @@ type Config struct {
 	HomeURL             string
 	CreateRedirectURL   string
 	UpdateRedirectURL   string
-	UpdateFields        []form.FieldInterface
+	UpdateFields        []FieldInterface
 	FuncReadExtras      func(r *http.Request, entityID string) []hb.TagInterface
 	PageSize            int
 	FuncRowsCount       func(r *http.Request) (int64, error)
