@@ -153,6 +153,7 @@ func (crud *Crud) webpage(title, content string) *hb.HtmlWebpage {
 	webpage.AddStyleURLs([]string{
 		cdn.BootstrapCss_5_3_3(),
 		cdn.BootstrapIconsCss_1_13_1(),
+		cdn.VueElementPlusCss_2_3_8(),
 	})
 	webpage.AddScriptURLs([]string{
 		cdn.BootstrapJs_5_3_3(),
