@@ -254,3 +254,66 @@ func TestCreate_ModalShow_ReturnsHTML(t *testing.T) {
 		t.Fatal("expected 'New Product' in modal HTML output")
 	}
 }
+
+func TestCreate_ModalSave_RepeaterFieldCollected(t *testing.T) {
+	var savedData map[string]string
+	crud := newTestCrud()
+	crud.createFields = []form.FieldInterface{
+		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+		form.NewField(form.FieldOptions{Name: "tags", Type: FORM_FIELD_TYPE_REPEATER}),
+	}
+	crud.funcCreate = func(r *http.Request, data map[string]string) (string, error) {
+		savedData = data
+		return "new-id", nil
+	}
+	ctrl := crud.newEntityCreateController()
+
+	formData := url.Values{}
+	formData.Set("title", "My Product")
+	formData.Add("tags[0][name]", "go")
+	formData.Add("tags[1][name]", "web")
+	r := httptest.NewRequest(http.MethodPost, "/admin?path=entity-create-ajax", strings.NewReader(formData.Encode()))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	ctrl.modalSave(w, r)
+
+	body := w.Body.String()
+	var resp map[string]interface{}
+	if err := json.Unmarshal([]byte(body), &resp); err != nil {
+		t.Fatalf("expected JSON response, got: %s", body)
+	}
+	if resp["status"] != "success" {
+		t.Fatalf("expected status 'success', got: %v — body: %s", resp["status"], body)
+	}
+	if savedData["title"] != "My Product" {
+		t.Fatalf("expected title 'My Product', got: %s", savedData["title"])
+	}
+	if !strings.HasPrefix(savedData["tags"], "[") {
+		t.Fatalf("expected tags to be JSON array, got: %s", savedData["tags"])
+	}
+	if !strings.Contains(savedData["tags"], `"name"`) {
+		t.Fatalf("expected 'name' key in tags JSON, got: %s", savedData["tags"])
+	}
+}
+
+func TestCreate_Modal_ContainsMoveRepeaterMethods(t *testing.T) {
+	crud := newTestCrud()
+	crud.createFields = []form.FieldInterface{
+		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	}
+	ctrl := crud.newEntityCreateController()
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-create-modal", nil)
+	w := httptest.NewRecorder()
+
+	ctrl.modalShow(w, r)
+
+	body := w.Body.String()
+	if !strings.Contains(body, "moveRepeaterItemUp") {
+		t.Fatal("expected 'moveRepeaterItemUp' method in modal script")
+	}
+	if !strings.Contains(body, "moveRepeaterItemDown") {
+		t.Fatal("expected 'moveRepeaterItemDown' method in modal script")
+	}
+}

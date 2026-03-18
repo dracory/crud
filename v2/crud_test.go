@@ -573,6 +573,91 @@ func TestHandler_FuncLog_LogsCSRFFailure(t *testing.T) {
 }
 
 // ==========================================================================
+// collectRepeaterField tests
+// ==========================================================================
+
+func TestCollectRepeaterField_NoKeys(t *testing.T) {
+	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("title=hello"))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	r.ParseForm()
+
+	result := collectRepeaterField(r, "image_urls")
+	if result != "[]" {
+		t.Fatalf("expected '[]' when no keys match, got: %s", result)
+	}
+}
+
+func TestCollectRepeaterField_SingleItemSingleKey(t *testing.T) {
+	body := "image_urls%5B0%5D%5Bimage%5D=http%3A%2F%2Fexample.com%2Fa.jpg"
+	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	r.ParseForm()
+
+	result := collectRepeaterField(r, "image_urls")
+	if !strings.Contains(result, `"image"`) {
+		t.Fatalf("expected key 'image' in result, got: %s", result)
+	}
+	if !strings.Contains(result, `http://example.com/a.jpg`) {
+		t.Fatalf("expected URL value in result, got: %s", result)
+	}
+}
+
+func TestCollectRepeaterField_MultipleItemsMultipleKeys(t *testing.T) {
+	body := "image_urls%5B0%5D%5Bimage%5D=1&image_urls%5B1%5D%5Bimage%5D=2"
+	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	r.ParseForm()
+
+	result := collectRepeaterField(r, "image_urls")
+	// Should be a JSON array with 2 items
+	if !strings.HasPrefix(result, "[") || !strings.HasSuffix(result, "]") {
+		t.Fatalf("expected JSON array, got: %s", result)
+	}
+	if !strings.Contains(result, `"image":"1"`) && !strings.Contains(result, `"image": "1"`) {
+		t.Fatalf("expected first item with image=1, got: %s", result)
+	}
+	if !strings.Contains(result, `"image":"2"`) && !strings.Contains(result, `"image": "2"`) {
+		t.Fatalf("expected second item with image=2, got: %s", result)
+	}
+}
+
+func TestCollectRepeaterField_PreservesOrder(t *testing.T) {
+	body := "tags%5B0%5D%5Bname%5D=first&tags%5B1%5D%5Bname%5D=second&tags%5B2%5D%5Bname%5D=third"
+	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	r.ParseForm()
+
+	result := collectRepeaterField(r, "tags")
+	firstIdx := strings.Index(result, "first")
+	secondIdx := strings.Index(result, "second")
+	thirdIdx := strings.Index(result, "third")
+	if firstIdx < 0 || secondIdx < 0 || thirdIdx < 0 {
+		t.Fatalf("expected all three values in result, got: %s", result)
+	}
+	if !(firstIdx < secondIdx && secondIdx < thirdIdx) {
+		t.Fatalf("expected order first < second < third, got: %s", result)
+	}
+}
+
+func TestCollectRepeaterField_MultipleSubKeys(t *testing.T) {
+	body := "items%5B0%5D%5Btitle%5D=Hello&items%5B0%5D%5Burl%5D=http%3A%2F%2Fexample.com"
+	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	r.ParseForm()
+
+	result := collectRepeaterField(r, "items")
+	if !strings.Contains(result, `"title"`) {
+		t.Fatalf("expected 'title' key in result, got: %s", result)
+	}
+	if !strings.Contains(result, `"url"`) {
+		t.Fatalf("expected 'url' key in result, got: %s", result)
+	}
+	if !strings.Contains(result, "Hello") {
+		t.Fatalf("expected 'Hello' value in result, got: %s", result)
+	}
+}
+
+// ==========================================================================
 // Layout tests
 // ==========================================================================
 

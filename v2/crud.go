@@ -2,6 +2,7 @@
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -272,10 +273,21 @@ func (crud *Crud) form(fields []form.FieldInterface) []hb.TagInterface {
 	return tags
 }
 
-// listCreateNames returns the field names from createFields.
+// listCreateNames returns the field names from createFields, including repeater fields.
 func (crud *Crud) listCreateNames() []string {
+	return listFieldNames(crud.createFields)
+}
+
+// listUpdateNames returns the field names from updateFields, including repeater fields.
+func (crud *Crud) listUpdateNames() []string {
+	return listFieldNames(crud.updateFields)
+}
+
+// listFieldNames collects all field names from a slice of fields.
+// Repeater fields are included — their value arrives as a JSON-encoded string.
+func listFieldNames(fields []form.FieldInterface) []string {
 	names := []string{}
-	for _, field := range crud.createFields {
+	for _, field := range fields {
 		if field.GetName() == "" {
 			continue
 		}
@@ -284,16 +296,65 @@ func (crud *Crud) listCreateNames() []string {
 	return names
 }
 
-// listUpdateNames returns the field names from updateFields.
-func (crud *Crud) listUpdateNames() []string {
-	names := []string{}
-	for _, field := range crud.updateFields {
-		if field.GetName() == "" {
+// collectRepeaterFields scans r.Form for keys matching fieldName[N][subKey]
+// and returns a JSON-encoded array string, e.g. [{"image":"1"},{"image":"2"}].
+// If no indexed keys are found it returns an empty JSON array "[]".
+func collectRepeaterField(r *http.Request, fieldName string) string {
+	// gather all sub-keys per index: rows[index][subKey] = value
+	rows := map[int]map[string]string{}
+	maxIndex := -1
+
+	prefix := fieldName + "["
+	for key, vals := range r.Form {
+		if !strings.HasPrefix(key, prefix) {
 			continue
 		}
-		names = append(names, field.GetName())
+		// key looks like: fieldName[N][subKey]
+		rest := key[len(prefix):]
+		bracketEnd := strings.Index(rest, "]")
+		if bracketEnd < 0 {
+			continue
+		}
+		indexStr := rest[:bracketEnd]
+		index := 0
+		fmt.Sscanf(indexStr, "%d", &index)
+
+		subRest := rest[bracketEnd+1:]
+		if !strings.HasPrefix(subRest, "[") || !strings.HasSuffix(subRest, "]") {
+			continue
+		}
+		subKey := subRest[1 : len(subRest)-1]
+
+		if rows[index] == nil {
+			rows[index] = map[string]string{}
+		}
+		if len(vals) > 0 {
+			rows[index][subKey] = vals[0]
+		}
+		if index > maxIndex {
+			maxIndex = index
+		}
 	}
-	return names
+
+	if maxIndex < 0 {
+		return "[]"
+	}
+
+	// build ordered slice
+	result := make([]map[string]string, maxIndex+1)
+	for i := 0; i <= maxIndex; i++ {
+		if rows[i] != nil {
+			result[i] = rows[i]
+		} else {
+			result[i] = map[string]string{}
+		}
+	}
+
+	b, err := json.Marshal(result)
+	if err != nil {
+		return "[]"
+	}
+	return string(b)
 }
 
 // validateRepeaterFields validates repeater fields in the form data.

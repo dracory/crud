@@ -247,15 +247,29 @@ const EntityManager = {
 				return Swal.fire({icon: 'error', title: 'Oops...', text: result});
 			});
 		},
-		addRepeaterItem(fieldName){
+		addRepeaterItem(fieldName, item){
 			if (!this.entityModel[fieldName]) {
 				this.entityModel[fieldName] = [];
 			}
-			this.entityModel[fieldName].push({});
+			this.entityModel[fieldName].push(item !== undefined ? item : {});
 		},
 		removeRepeaterItem(fieldName, index){
 			if (this.entityModel[fieldName] && this.entityModel[fieldName].length > 0) {
 				this.entityModel[fieldName].splice(index, 1);
+			}
+		},
+		moveRepeaterItemUp(fieldName, index){
+			if (index > 0 && this.entityModel[fieldName]) {
+				const arr = this.entityModel[fieldName];
+				const item = arr.splice(index, 1)[0];
+				arr.splice(index - 1, 0, item);
+			}
+		},
+		moveRepeaterItemDown(fieldName, index){
+			if (this.entityModel[fieldName] && index < this.entityModel[fieldName].length - 1) {
+				const arr = this.entityModel[fieldName];
+				const item = arr.splice(index, 1)[0];
+				arr.splice(index + 1, 0, item);
 			}
 		}
 	}

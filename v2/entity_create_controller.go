@@ -35,11 +35,17 @@ func (controller *entityCreateController) modalSave(w http.ResponseWriter, r *ht
 		return
 	}
 
-	names := controller.crud.listCreateNames()
-
 	posts := map[string]string{}
-	for _, name := range names {
-		posts[name] = req.GetString(r, name)
+	for _, field := range controller.crud.createFields {
+		name := field.GetName()
+		if name == "" {
+			continue
+		}
+		if field.GetType() == FORM_FIELD_TYPE_REPEATER {
+			posts[name] = collectRepeaterField(r, name)
+		} else {
+			posts[name] = req.GetString(r, name)
+		}
 	}
 
 	// Check required fields
@@ -122,13 +128,27 @@ const EntityCreate = {
 			})
 			.catch(err => { Swal.fire({icon:'error', title:'Oops...', text: err.toString()}); });
 		},
-		addRepeaterItem(fieldName){
+		addRepeaterItem(fieldName, item){
 			if (!this.entityModel[fieldName]) { this.entityModel[fieldName] = []; }
-			this.entityModel[fieldName].push({});
+			this.entityModel[fieldName].push(item !== undefined ? item : {});
 		},
 		removeRepeaterItem(fieldName, index){
 			if (this.entityModel[fieldName] && this.entityModel[fieldName].length > 0) {
 				this.entityModel[fieldName].splice(index, 1);
+			}
+		},
+		moveRepeaterItemUp(fieldName, index){
+			if (index > 0 && this.entityModel[fieldName]) {
+				const arr = this.entityModel[fieldName];
+				const item = arr.splice(index, 1)[0];
+				arr.splice(index - 1, 0, item);
+			}
+		},
+		moveRepeaterItemDown(fieldName, index){
+			if (this.entityModel[fieldName] && index < this.entityModel[fieldName].length - 1) {
+				const arr = this.entityModel[fieldName];
+				const item = arr.splice(index, 1)[0];
+				arr.splice(index + 1, 0, item);
 			}
 		}
 	}

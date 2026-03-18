@@ -223,6 +223,63 @@ func TestRepeaterFieldVueMethodsIntegration(t *testing.T) {
 	}
 }
 
+func TestRepeaterFieldUpDownButtons(t *testing.T) {
+	crud := &Crud{
+		createFields: []form.FieldInterface{
+			form.NewField(form.FieldOptions{
+				Name:  "items",
+				Label: "Items",
+				Type:  FORM_FIELD_TYPE_REPEATER,
+			}),
+		},
+	}
+
+	tags := crud.form(crud.createFields)
+	html := tags[0].ToHTML()
+
+	if !strings.Contains(html, "moveRepeaterItemUp") {
+		t.Error("Should contain moveRepeaterItemUp call on up button")
+	}
+	if !strings.Contains(html, "moveRepeaterItemDown") {
+		t.Error("Should contain moveRepeaterItemDown call on down button")
+	}
+	if !strings.Contains(html, "bi-arrow-up") {
+		t.Error("Should contain up arrow icon")
+	}
+	if !strings.Contains(html, "bi-arrow-down") {
+		t.Error("Should contain down arrow icon")
+	}
+	// Up button disabled when first item
+	if !strings.Contains(html, "index === 0") {
+		t.Error("Should disable up button for first item")
+	}
+	// Down button disabled when last item
+	if !strings.Contains(html, "index === entityModel.items.length - 1") {
+		t.Error("Should disable down button for last item")
+	}
+}
+
+func TestRepeaterFieldAddItemPassesEmptyObject(t *testing.T) {
+	crud := &Crud{
+		createFields: []form.FieldInterface{
+			form.NewField(form.FieldOptions{
+				Name:  "links",
+				Label: "Links",
+				Type:  FORM_FIELD_TYPE_REPEATER,
+			}),
+		},
+	}
+
+	tags := crud.form(crud.createFields)
+	html := tags[0].ToHTML()
+
+	// Generic repeater (no sub-fields) passes "" as the item seed.
+	// HTML attributes are escaped, so " becomes &#34; and ' becomes &#39;.
+	if !strings.Contains(html, `addRepeaterItem(&#39;links&#39;, &#34;&#34;)`) {
+		t.Errorf("Generic repeater should pass empty string seed to addRepeaterItem, got: %s", html)
+	}
+}
+
 func TestRepeaterFieldDataStructure(t *testing.T) {
 	// Test the expected data structure for repeater fields
 	crud := &Crud{}

@@ -294,3 +294,72 @@ func TestUpdate_Page_CustomRedirectURL(t *testing.T) {
 		t.Fatal("expected custom entityManagerUrl '/custom/after-save' in page output")
 	}
 }
+
+func TestUpdate_PageSave_RepeaterFieldCollected(t *testing.T) {
+	var savedData map[string]string
+	crud := newTestCrud()
+	crud.updateFields = []form.FieldInterface{
+		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+		form.NewField(form.FieldOptions{Name: "image_urls", Type: FORM_FIELD_TYPE_REPEATER}),
+	}
+	crud.funcUpdate = func(r *http.Request, entityID string, data map[string]string) error {
+		savedData = data
+		return nil
+	}
+	ctrl := crud.newEntityUpdateController()
+
+	// Simulate form-encoded repeater data: image_urls[0][image]=1&image_urls[1][image]=2
+	formData := url.Values{}
+	formData.Set("entity_id", "123")
+	formData.Set("title", "My Title")
+	formData.Add("image_urls[0][image]", "1")
+	formData.Add("image_urls[1][image]", "2")
+	r := httptest.NewRequest(http.MethodPost, "/admin?path=entity-update-ajax", strings.NewReader(formData.Encode()))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	w := httptest.NewRecorder()
+
+	ctrl.pageSave(w, r)
+
+	body := w.Body.String()
+	var resp map[string]interface{}
+	if err := json.Unmarshal([]byte(body), &resp); err != nil {
+		t.Fatalf("expected JSON response, got: %s", body)
+	}
+	if resp["status"] != "success" {
+		t.Fatalf("expected status 'success', got: %v — body: %s", resp["status"], body)
+	}
+	if savedData["title"] != "My Title" {
+		t.Fatalf("expected title 'My Title', got: %s", savedData["title"])
+	}
+	// Repeater should be JSON-encoded array
+	if !strings.HasPrefix(savedData["image_urls"], "[") {
+		t.Fatalf("expected image_urls to be JSON array, got: %s", savedData["image_urls"])
+	}
+	if !strings.Contains(savedData["image_urls"], `"image"`) {
+		t.Fatalf("expected 'image' key in repeater JSON, got: %s", savedData["image_urls"])
+	}
+}
+
+func TestUpdate_Page_ContainsMoveRepeaterMethods(t *testing.T) {
+	crud := newTestCrud()
+	crud.updateFields = []form.FieldInterface{
+		form.NewField(form.FieldOptions{Name: "title", Type: FORM_FIELD_TYPE_STRING}),
+	}
+	crud.funcFetchUpdateData = func(r *http.Request, entityID string) (map[string]string, error) {
+		return map[string]string{"title": "Test"}, nil
+	}
+	ctrl := crud.newEntityUpdateController()
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-update&entity_id=123", nil)
+	w := httptest.NewRecorder()
+
+	ctrl.page(w, r)
+
+	body := w.Body.String()
+	if !strings.Contains(body, "moveRepeaterItemUp") {
+		t.Fatal("expected 'moveRepeaterItemUp' method in page script")
+	}
+	if !strings.Contains(body, "moveRepeaterItemDown") {
+		t.Fatal("expected 'moveRepeaterItemDown' method in page script")
+	}
+}

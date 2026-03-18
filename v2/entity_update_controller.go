@@ -202,15 +202,29 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 					FR.readAsDataURL( event.target.files[0] );
 				}
 			},
-			addRepeaterItem(fieldName){
+			addRepeaterItem(fieldName, item){
 				if (!this.entityModel[fieldName]) {
 					this.entityModel[fieldName] = [];
 				}
-				this.entityModel[fieldName].push({});
+				this.entityModel[fieldName].push(item !== undefined ? item : {});
 			},
 			removeRepeaterItem(fieldName, index){
 				if (this.entityModel[fieldName] && this.entityModel[fieldName].length > 0) {
 					this.entityModel[fieldName].splice(index, 1);
+				}
+			},
+			moveRepeaterItemUp(fieldName, index){
+				if (index > 0 && this.entityModel[fieldName]) {
+					const arr = this.entityModel[fieldName];
+					const item = arr.splice(index, 1)[0];
+					arr.splice(index - 1, 0, item);
+				}
+			},
+			moveRepeaterItemDown(fieldName, index){
+				if (this.entityModel[fieldName] && index < this.entityModel[fieldName].length - 1) {
+					const arr = this.entityModel[fieldName];
+					const item = arr.splice(index, 1)[0];
+					arr.splice(index + 1, 0, item);
 				}
 			}
 		}
@@ -250,10 +264,17 @@ func (controller *entityUpdateController) pageSave(w http.ResponseWriter, r *htt
 		return
 	}
 
-	names := controller.crud.listUpdateNames()
 	posts := map[string]string{}
-	for _, name := range names {
-		posts[name] = req.GetStringTrimmed(r, name)
+	for _, field := range controller.crud.updateFields {
+		name := field.GetName()
+		if name == "" {
+			continue
+		}
+		if field.GetType() == FORM_FIELD_TYPE_REPEATER {
+			posts[name] = collectRepeaterField(r, name)
+		} else {
+			posts[name] = req.GetStringTrimmed(r, name)
+		}
 	}
 
 	// Check required fields

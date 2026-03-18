@@ -268,3 +268,21 @@ func TestManager_Page_NoPaginationWhenSinglePage(t *testing.T) {
 		t.Fatal("expected no pagination when total rows fit in one page")
 	}
 }
+
+func TestManager_Page_ContainsMoveRepeaterMethods(t *testing.T) {
+	crud := newTestCrud()
+	ctrl := crud.newEntityManagerController()
+
+	r := httptest.NewRequest(http.MethodGet, "/admin?path=entity-manager", nil)
+	w := httptest.NewRecorder()
+
+	ctrl.page(w, r)
+
+	body := w.Body.String()
+	if !strings.Contains(body, "moveRepeaterItemUp") {
+		t.Fatal("expected 'moveRepeaterItemUp' method in manager script")
+	}
+	if !strings.Contains(body, "moveRepeaterItemDown") {
+		t.Fatal("expected 'moveRepeaterItemDown' method in manager script")
+	}
+}

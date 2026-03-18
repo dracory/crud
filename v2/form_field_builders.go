@@ -136,10 +136,19 @@ func (crud *Crud) buildFieldRepeater(field form.FieldInterface) *hb.Tag {
 			Attr(":key", "index").
 			Children([]hb.TagInterface{
 				hb.Div().Class("repeater-item mb-3 border p-3").Children([]hb.TagInterface{
-					hb.Button().Class("btn btn-sm btn-outline-danger float-end").
-						Attr("v-on:click", "removeRepeaterItem('"+fieldName+"', index)").
-						Child(hb.I().Class("bi-trash")).
-						HTML(" Remove"),
+					hb.Div().Class("d-flex gap-1 float-end mb-2").Children([]hb.TagInterface{
+						hb.Button().Class("btn btn-sm btn-outline-secondary").
+							Attr("v-on:click", "moveRepeaterItemUp('"+fieldName+"', index)").
+							Attr(":disabled", "index === 0").
+							Child(hb.I().Class("bi-arrow-up")),
+						hb.Button().Class("btn btn-sm btn-outline-secondary").
+							Attr("v-on:click", "moveRepeaterItemDown('"+fieldName+"', index)").
+							Attr(":disabled", "index === entityModel."+fieldName+".length - 1").
+							Child(hb.I().Class("bi-arrow-down")),
+						hb.Button().Class("btn btn-sm btn-outline-danger").
+							Attr("v-on:click", "removeRepeaterItem('"+fieldName+"', index)").
+							Child(hb.I().Class("bi-trash")),
+					}),
 					rowContent,
 				}),
 			}),
