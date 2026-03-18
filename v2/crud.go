@@ -150,7 +150,10 @@ func (crud *Crud) webpage(title, content string) *hb.HtmlWebpage {
 	webpage := hb.Webpage()
 	webpage.SetTitle(title)
 	webpage.SetFavicon(faviconImgCms)
-	webpage.AddStyleURLs([]string{cdn.BootstrapCss_5_3_3()})
+	webpage.AddStyleURLs([]string{
+		cdn.BootstrapCss_5_3_3(),
+		cdn.BootstrapIconsCss_1_13_1(),
+	})
 	webpage.AddScriptURLs([]string{
 		cdn.BootstrapJs_5_3_3(),
 		cdn.Jquery_3_7_1(),

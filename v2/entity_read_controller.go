@@ -48,13 +48,13 @@ func (controller *entityReadController) page(w http.ResponseWriter, r *http.Requ
 	})
 
 	buttonEdit := hb.Hyperlink().
-		Class("btn btn-primary ml-2 float-end").
+		Class("btn btn-primary ms-2 float-end").
 		Child(hb.I().Class("bi-pencil-square").Style("margin-top:-4px;margin-right:8px;")).
 		HTML("Edit").
 		Href(controller.crud.UrlEntityUpdate() + "&entity_id=" + entityID)
 
 	buttonCancel := hb.Hyperlink().
-		Class("btn btn-secondary ml-2 float-end").
+		Class("btn btn-secondary ms-2 float-end").
 		Child(hb.I().Class("bi-chevron-left").Style("margin-top:-4px;margin-right:8px;")).
 		HTML("Back").
 		Href(controller.crud.UrlEntityManager())
@@ -66,7 +66,7 @@ func (controller *entityReadController) page(w http.ResponseWriter, r *http.Requ
 
 	container := hb.Div().
 		ID("entity-read").
-		Class("container").
+		Class("container mt-3").
 		Child(heading).
 		Child(hb.Raw(breadcrumbs))
 
@@ -125,6 +125,25 @@ func (controller *entityReadController) page(w http.ResponseWriter, r *http.Requ
 	if controller.crud.funcReadExtras != nil {
 		container.Children(controller.crud.funcReadExtras(r, entityID))
 	}
+
+	bottomButtons := hb.Div().
+		Class("row mt-4 mb-4").
+		Child(hb.Div().
+			Class("col-12").
+			Child(hb.Div().
+				Class("d-flex justify-content-between").
+				Child(hb.Hyperlink().
+					Class("btn btn-secondary").
+					Child(hb.I().Class("bi bi-chevron-left me-2")).
+					HTML("Back").
+					Href(controller.crud.UrlEntityManager())).
+				Child(hb.Hyperlink().
+					Class("btn btn-primary").
+					Child(hb.I().Class("bi bi-pencil-square me-2")).
+					HTML("Edit").
+					Href(controller.crud.UrlEntityUpdate()+"&entity_id="+entityID))))
+
+	container.Child(bottomButtons)
 	content := container.ToHTML()
 	title := "View " + controller.crud.entityNameSingular
 	html := controller.crud.layout(w, r, title, content, []string{}, "", []string{}, "")

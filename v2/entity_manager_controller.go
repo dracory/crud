@@ -43,12 +43,9 @@ func (controller *entityManagerController) page(w http.ResponseWriter, r *http.R
 
 	buttonCreate := hb.Button().
 		Class("btn btn-success float-end").
-		// Attr("v-on:click", "showEntityCreateModal").
+		Attr("v-on:click", "showEntityCreateModal").
 		AddChild(hb.I().Class("bi-plus-circle").Style("margin-top:-4px;margin-right:8px;")).
-		HTML("New " + controller.crud.entityNameSingular).
-		HxGet(controller.crud.UrlEntityCreateModal()).
-		HxTarget("body").
-		HxSwap("beforeend")
+		HTML("New " + controller.crud.entityNameSingular)
 
 	heading := hb.Heading1().
 		HTML(controller.crud.entityNameSingular + " Manager").
@@ -128,7 +125,7 @@ func (controller *entityManagerController) page(w http.ResponseWriter, r *http.R
 
 	container := hb.Div().
 		ID("entity-manager").
-		Class("container").
+		Class("container mt-3").
 		Child(heading).
 		Child(hb.Raw(breadcrumbs)).
 		// Child(crud.pageEntitiesEntityCreateModal()).
@@ -206,8 +203,12 @@ const EntityManager = {
 			});
 		},
         showEntityCreateModal(){
-			const modalEntityCreate = new bootstrap.Modal(document.getElementById('ModalEntityCreate'));
-			modalEntityCreate.show();
+			fetch(` + "`" + `` + controller.crud.UrlEntityCreateModal() + `` + "`" + `).then(r => r.text()).then(html => {
+				const range = document.createRange();
+				range.selectNode(document.body);
+				const frag = range.createContextualFragment(html);
+				document.body.appendChild(frag);
+			});
 		},
 		showEntityTrashModal(entityId){
 			this.entityTrashModel.entityId = entityId;

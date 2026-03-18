@@ -51,7 +51,7 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 	buttonSave := hb.Button().Class("btn btn-success float-end").Attr("v-on:click", "entitySave(true)").
 		AddChild(hb.I().Class("bi-check-all").Style("margin-top:-4px;margin-right:8px;")).
 		HTML("Save")
-	buttonApply := hb.Button().Class("btn btn-success float-end").Attr("v-on:click", "entitySave").
+	buttonApply := hb.Button().Class("btn btn-success float-end").Attr("v-on:click", "entitySave(false)").
 		Style("margin-right:10px;").
 		AddChild(hb.I().Class("bi-check").Style("margin-top:-4px;margin-right:8px;")).
 		HTML("Apply")
@@ -60,7 +60,7 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 		AddChild(buttonApply)
 
 	// container.AddChild(hb.HTML(header))
-	container := hb.Div().Attr("class", "container").Attr("id", "entity-update").
+	container := hb.Div().Attr("class", "container mt-3").Attr("id", "entity-update").
 		AddChild(heading).
 		AddChild(hb.Raw(breadcrumbs))
 
@@ -219,7 +219,7 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 						Swal.fire({
 							icon:'success', 
 							title:'Saved successfully',
-							position:'top-left',
+							position:'top-end',
 							showConfirmButton:false,
 							timer:3000,
 							timerProgressBar:true
@@ -227,7 +227,14 @@ func (controller *entityUpdateController) page(w http.ResponseWriter, r *http.Re
 							window.location.href=entityManagerUrl;
 						});
 					} else {
-						return Swal.fire({icon: 'success',title: 'Entity saved'});
+						Swal.fire({
+							icon:'success',
+							title:'Saved successfully',
+							position:'top-end',
+							showConfirmButton:false,
+							timer:2000,
+							timerProgressBar:true
+						});
 					}
 				})
 				.catch((result)=>{
