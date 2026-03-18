@@ -1,4 +1,4 @@
-package crud
+﻿package crud
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/dracory/api"
-	"github.com/dracory/bs"
 	"github.com/dracory/cdn"
 	"github.com/dracory/form"
 	"github.com/dracory/hb"
@@ -99,11 +98,9 @@ func (crud *Crud) getRoute(route string) func(w http.ResponseWriter, r *http.Req
 		pathEntityUpdateAjax:  crud.newEntityUpdateController().pageSave,
 		pathEntityTrashAjax:   crud.newEntityTrashController().pageEntityTrashAjax,
 	}
-	// log.Println(route)
 	if val, ok := routes[route]; ok {
 		return val
 	}
-
 	return routes[pathHome]
 }
 
@@ -113,66 +110,53 @@ func (crud *Crud) urlHome() string {
 
 func (crud *Crud) UrlEntityManager() string {
 	q := lo.Ternary(strings.Contains(crud.endpoint, "?"), "&", "?")
-	url := crud.endpoint + q + "path=" + pathEntityManager
-	return url
+	return crud.endpoint + q + "path=" + pathEntityManager
 }
 
 func (crud *Crud) UrlEntityCreateModal() string {
 	q := lo.Ternary(strings.Contains(crud.endpoint, "?"), "&", "?")
-	url := crud.endpoint + q + "path=" + pathEntityCreateModal
-	return url
+	return crud.endpoint + q + "path=" + pathEntityCreateModal
 }
 
 func (crud *Crud) UrlEntityCreateAjax() string {
 	q := lo.Ternary(strings.Contains(crud.endpoint, "?"), "&", "?")
-	url := crud.endpoint + q + "path=" + pathEntityCreateAjax
-	return url
+	return crud.endpoint + q + "path=" + pathEntityCreateAjax
 }
 
 func (crud *Crud) UrlEntityTrashAjax() string {
 	q := lo.Ternary(strings.Contains(crud.endpoint, "?"), "&", "?")
-	url := crud.endpoint + q + "path=" + pathEntityTrashAjax
-	return url
+	return crud.endpoint + q + "path=" + pathEntityTrashAjax
 }
 
 func (crud *Crud) UrlEntityRead() string {
 	q := lo.Ternary(strings.Contains(crud.endpoint, "?"), "&", "?")
-	url := crud.endpoint + q + "path=" + pathEntityRead
-	return url
+	return crud.endpoint + q + "path=" + pathEntityRead
 }
 
 func (crud *Crud) UrlEntityUpdate() string {
 	q := lo.Ternary(strings.Contains(crud.endpoint, "?"), "&", "?")
-	url := crud.endpoint + q + "path=" + pathEntityUpdate
-	return url
+	return crud.endpoint + q + "path=" + pathEntityUpdate
 }
 
 func (crud *Crud) UrlEntityUpdateAjax() string {
 	q := lo.Ternary(strings.Contains(crud.endpoint, "?"), "&", "?")
-	url := crud.endpoint + q + "path=" + pathEntityUpdateAjax
-	return url
+	return crud.endpoint + q + "path=" + pathEntityUpdateAjax
 }
 
-// Webpage returns the webpage template for the website
+// webpage returns the webpage template for the website
 func (crud *Crud) webpage(title, content string) *hb.HtmlWebpage {
 	faviconImgCms := `data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAmzKzAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABEQEAAQERAAEAAQABAAEAAQABAQEBEQABAAEREQEAAAERARARAREAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAAi6MAALu7AAC6owAAuC8AAIkjAAD//wAA//8AAP//AAD//wAA`
-	app := ""
 	webpage := hb.Webpage()
 	webpage.SetTitle(title)
 	webpage.SetFavicon(faviconImgCms)
-
-	webpage.AddStyleURLs([]string{
-		cdn.BootstrapCss_5_3_3(),
-	})
+	webpage.AddStyleURLs([]string{cdn.BootstrapCss_5_3_3()})
 	webpage.AddScriptURLs([]string{
 		cdn.BootstrapJs_5_3_3(),
 		cdn.Jquery_3_7_1(),
 		cdn.VueJs_3(),
 		cdn.Sweetalert2_11(),
 	})
-	webpage.AddScripts([]string{
-		app,
-	})
+	webpage.AddScripts([]string{""})
 	webpage.AddStyle(`html,body{height:100%;}`)
 	webpage.AddStyle(`body {
 		font-family: "Nunito", sans-serif;
@@ -209,65 +193,33 @@ func (crud *Crud) webpage(title, content string) *hb.HtmlWebpage {
 func (crud *Crud) renderBreadcrumbs(breadcrumbs []Breadcrumb) string {
 	nav := hb.Nav().Attr("aria-label", "breadcrumb")
 	ol := hb.OL().Attr("class", "breadcrumb")
-
 	for _, breadcrumb := range breadcrumbs {
 		li := hb.LI().Attr("class", "breadcrumb-item")
-		link := hb.Hyperlink().Text(breadcrumb.Name).Attr("href", breadcrumb.URL)
-
-		li.AddChild(link)
-
+		li.AddChild(hb.Hyperlink().Text(breadcrumb.Name).Attr("href", breadcrumb.URL))
 		ol.AddChild(li)
 	}
-
 	nav.AddChild(ol)
-
 	return nav.ToHTML()
 }
 
-// layout is a function that generates an HTML layout for a web page.
-//
-// Parameters:
-// - w: an http.ResponseWriter object for writing the HTTP response.
-// - r: a pointer to an http.Request object representing the HTTP request.
-// - title: a string containing the title of the web page.
-// - content: a string containing the content of the web page.
-// - styleFiles: a slice of strings representing the URLs of the style files to be included in the web page.
-// - style: a string containing the CSS style to be applied to the web page.
-// - jsFiles: a slice of strings representing the URLs of the JavaScript files to be included in the web page.
-// - js: a string containing the JavaScript code to be executed in the web page.
-//
-// Returns:
-// - string - a string representing the generated HTML layout.
 func (crud *Crud) layout(w http.ResponseWriter, r *http.Request, title string, content string, styleFiles []string, style string, jsFiles []string, js string) string {
-	html := ""
-
 	if crud.funcLayout != nil {
-		// jsFiles = append([]string{"//unpkg.com/naive-ui"}, jsFiles...)
 		jsFiles = append([]string{cdn.VueElementPlusJs_2_3_8()}, jsFiles...)
 		jsFiles = append([]string{cdn.VueJs_3()}, jsFiles...)
 		jsFiles = append([]string{cdn.Sweetalert2_11()}, jsFiles...)
 		jsFiles = append([]string{cdn.Htmx_2_0_0()}, jsFiles...)
 		styleFiles = append([]string{cdn.VueElementPlusCss_2_3_8()}, styleFiles...)
-		html = crud.funcLayout(w, r, title, content, styleFiles, style, jsFiles, js)
-	} else {
-		webpage := crud.webpage(title, content)
-		webpage.AddStyleURLs(styleFiles)
-		webpage.AddStyle(style)
-		webpage.AddScriptURLs(jsFiles)
-		webpage.AddScript(js)
-		html = webpage.ToHTML()
+		return crud.funcLayout(w, r, title, content, styleFiles, style, jsFiles, js)
 	}
-
-	return html
+	webpage := crud.webpage(title, content)
+	webpage.AddStyleURLs(styleFiles)
+	webpage.AddStyle(style)
+	webpage.AddScriptURLs(jsFiles)
+	webpage.AddScript(js)
+	return webpage.ToHTML()
 }
 
-// form generates a form with entries for each form field.
-//
-// Parameters:
-// - fields: a slice of FormField structs representing the fields in the form.
-//
-// Returns:
-// - a slice of hb.Tags representing the form.
+// form generates a form group for each field, delegating widget creation to buildFieldWidget.
 func (crud *Crud) form(fields []form.FieldInterface) []hb.TagInterface {
 	tags := []hb.TagInterface{}
 	for _, field := range fields {
@@ -279,132 +231,25 @@ func (crud *Crud) form(fields []form.FieldInterface) []hb.TagInterface {
 			}
 			fieldID = id
 		}
-		fieldName := field.GetName()
-		fieldValue := field.GetValue()
+
 		fieldLabel := field.GetLabel()
 		if fieldLabel == "" {
-			fieldLabel = fieldName
+			fieldLabel = field.GetName()
 		}
+
+		formGroupInput := crud.buildFieldWidget(field, fieldID)
 
 		formGroup := hb.Div().Class("form-group mb-3")
-
-		formGroupLabel := hb.Label().
-			Text(fieldLabel).
-			Class("form-label").
-			ChildIf(
-				field.GetRequired(),
-				hb.Sup().Text("*").Class("text-danger ml-1"),
-			)
-
-		formGroupInput := hb.Input().
-			Class("form-control").
-			Attr("v-model", "entityModel."+fieldName)
-
-		if field.GetType() == FORM_FIELD_TYPE_IMAGE {
-			formGroupInput = hb.Div().Children([]hb.TagInterface{
-				hb.Image("").
-					Attr(`v-bind:src`, `entityModel.`+fieldName+`||'https://www.freeiconspng.com/uploads/no-image-icon-11.PNG'`).
-					Style(`width:200px;`),
-				bs.InputGroup().Children([]hb.TagInterface{
-					hb.Input().Type(hb.TYPE_URL).Class("form-control").Attr("v-model", "entityModel."+fieldName),
-					hb.If(crud.fileManagerURL != "", bs.InputGroupText().Children([]hb.TagInterface{
-						hb.Hyperlink().Text("Browse").Href(crud.fileManagerURL).Target("_blank"),
-					})),
-				}),
-			})
-		}
-
-		if field.GetType() == FORM_FIELD_TYPE_IMAGE_INLINE {
-			formGroupInput = hb.Div().
-				Children([]hb.TagInterface{
-					hb.Image("").
-						Attr(`v-bind:src`, `entityModel.`+fieldName+`||'https://www.freeiconspng.com/uploads/no-image-icon-11.PNG'`).
-						Style(`width:200px;`),
-					hb.Input().
-						Type(hb.TYPE_FILE).
-						Attr("v-on:change", "uploadImage($event, '"+fieldName+"')").
-						Attr("accept", "image/*"),
-					hb.Button().
-						HTML("See Image Data").
-						Attr("v-on:click", "tmp.show_url_"+fieldName+" = !tmp.show_url_"+fieldName),
-					hb.TextArea().
-						Type(hb.TYPE_URL).
-						Class("form-control").
-						Attr("v-if", "tmp.show_url_"+fieldName).
-						Attr("v-model", "entityModel."+fieldName),
-				})
-		}
-
-		if field.GetType() == FORM_FIELD_TYPE_DATETIME {
-			// formGroupInput = hb.Input().Type(hb.TYPE_DATETIME).Class("form-control").Attr("v-model", "entityModel."+fieldName)
-			formGroupInput = hb.NewTag(`el-date-picker`).Attr("type", "datetime").Attr("v-model", "entityModel."+fieldName)
-			// formGroupInput = hb.Tag(`n-date-picker`).Attr("type", "datetime").Class("form-control").Attr("v-model", "entityModel."+fieldName)
-		}
-
-		if field.GetType() == FORM_FIELD_TYPE_HTMLAREA {
-			formGroupInput = hb.NewTag("trumbowyg").Attr("v-model", "entityModel."+fieldName).Attr(":config", "trumbowigConfig").Class("form-control")
-		}
-
-		if field.GetType() == FORM_FIELD_TYPE_NUMBER {
-			formGroupInput.Type(hb.TYPE_NUMBER)
-		}
-
-		if field.GetType() == FORM_FIELD_TYPE_PASSWORD {
-			formGroupInput.Type(hb.TYPE_PASSWORD)
-		}
-
-		if field.GetType() == FORM_FIELD_TYPE_SELECT {
-			formGroupInput = hb.Select().Class("form-select").Attr("v-model", "entityModel."+fieldName)
-			for _, opt := range field.GetOptions() {
-				option := hb.Option().Value(opt.Key).Text(opt.Value)
-				formGroupInput.AddChild(option)
-			}
-			if field.GetOptionsF() != nil {
-				options := field.GetOptionsF()()
-				for _, opt := range options {
-					option := hb.Option().Value(opt.Key).Text(opt.Value)
-					formGroupInput.AddChild(option)
-				}
-			}
-		}
-
-		if field.GetType() == FORM_FIELD_TYPE_TEXTAREA {
-			formGroupInput = hb.TextArea().Class("form-control").Attr("v-model", "entityModel."+fieldName)
-		}
-
-		if field.GetType() == FORM_FIELD_TYPE_BLOCKAREA {
-			formGroupInput = hb.TextArea().Class("form-control").Attr("v-model", "entityModel."+fieldName)
-		}
-
-		if field.GetType() == FORM_FIELD_TYPE_RAW {
-			formGroupInput = hb.Raw(fieldValue)
-		}
-
-		if field.GetType() == FORM_FIELD_TYPE_REPEATER {
-			formGroupInput = hb.Div().Class("repeater-container").Children([]hb.TagInterface{
-				hb.Div().Class("repeater-items").Attr("v-for", "(item, index) in entityModel."+fieldName).Attr(":key", "index").Children([]hb.TagInterface{
-					hb.Div().Class("repeater-item mb-3 border p-3").Children([]hb.TagInterface{
-						hb.Button().Class("btn btn-sm btn-outline-danger float-end").Attr("v-on:click", "removeRepeaterItem('"+fieldName+"', index)").Child(hb.I().Class("bi-trash")).HTML(" Remove"),
-						hb.Div().Class("repeater-item-content").Attr("v-for", "(value, key) in item").Attr(":key", "key").Children([]hb.TagInterface{
-							hb.Label().Class("form-label").Attr("v-text", "key"),
-							hb.Input().Class("form-control").Attr("v-model", "entityModel."+fieldName+"[index][key]"),
-						}),
-					}),
-				}),
-				hb.Button().Class("btn btn-sm btn-outline-primary").Attr("v-on:click", "addRepeaterItem('"+fieldName+"')").Child(hb.I().Class("bi-plus")).HTML(" Add Item"),
-			})
-		}
-
-		formGroupInput.ID(fieldID)
 		if field.GetType() != FORM_FIELD_TYPE_RAW {
-			formGroup.AddChild(formGroupLabel)
+			formGroup.AddChild(hb.Label().
+				Text(fieldLabel).
+				Class("form-label").
+				ChildIf(field.GetRequired(), hb.Sup().Text("*").Class("text-danger ml-1")))
 		}
 		formGroup.AddChild(formGroupInput)
 
-		// Add help
 		if field.GetHelp() != "" {
-			formGroupHelp := hb.Paragraph().Class("text-info").HTML(field.GetHelp())
-			formGroup.AddChild(formGroupHelp)
+			formGroup.AddChild(hb.Paragraph().Class("text-info").HTML(field.GetHelp()))
 		}
 
 		tags = append(tags, formGroup)
@@ -424,84 +269,51 @@ func (crud *Crud) form(fields []form.FieldInterface) []hb.TagInterface {
 			tags = append(tags, script)
 		}
 	}
-
 	return tags
 }
 
-// listCreateNames returns a list of names from the createFields
-// slice in the Crud struct.
-//
-// Parameters:
-//   - None
-//
-// Returns:
-//   - []string - a list of field names
+// listCreateNames returns the field names from createFields.
 func (crud *Crud) listCreateNames() []string {
 	names := []string{}
-
 	for _, field := range crud.createFields {
 		if field.GetName() == "" {
 			continue
 		}
 		names = append(names, field.GetName())
 	}
-
 	return names
 }
 
-// validateRepeaterFields validates repeater fields in the form data
-func (crud *Crud) validateRepeaterFields(data map[string]string, fields []form.FieldInterface) error {
-	for _, field := range fields {
-		if field.GetType() == FORM_FIELD_TYPE_REPEATER && field.GetRequired() {
-			fieldName := field.GetName()
-			if fieldName == "" {
-				continue
-			}
-			
-			fieldValue := data[fieldName]
-			
-			// Check for empty or whitespace-only values
-			if fieldValue == "" || strings.TrimSpace(fieldValue) == "" {
-				return fmt.Errorf("%s is required field", field.GetLabel())
-			}
-			
-			// Check for empty array
-			if fieldValue == "[]" {
-				return fmt.Errorf("%s is required field", field.GetLabel())
-			}
-			
-			// For required fields, we need at least one item
-			// Try to parse as JSON to validate structure
-			trimmedValue := strings.TrimSpace(fieldValue)
-			if strings.HasPrefix(trimmedValue, "[") && strings.HasSuffix(trimmedValue, "]") {
-				// It looks like a JSON array, but we'll accept it as valid for now
-				// The actual JSON parsing will be handled by the application logic
-			} else {
-				// Not a JSON array format, consider it invalid for repeater fields
-				return fmt.Errorf("%s must be a valid JSON array", field.GetLabel())
-			}
-		}
-	}
-	return nil
-}
-
-// listUpdateNames returns a list of names from the updateFields
-// slice in the Crud struct.
-//
-// Parameters:
-//   - None
-//
-// Returns:
-//   - []string - a list of field names
+// listUpdateNames returns the field names from updateFields.
 func (crud *Crud) listUpdateNames() []string {
 	names := []string{}
-
 	for _, field := range crud.updateFields {
 		if field.GetName() == "" {
 			continue
 		}
 		names = append(names, field.GetName())
 	}
-
 	return names
+}
+
+// validateRepeaterFields validates repeater fields in the form data.
+func (crud *Crud) validateRepeaterFields(data map[string]string, fields []form.FieldInterface) error {
+	for _, field := range fields {
+		if field.GetType() != FORM_FIELD_TYPE_REPEATER || !field.GetRequired() {
+			continue
+		}
+		fieldName := field.GetName()
+		if fieldName == "" {
+			continue
+		}
+		fieldValue := strings.TrimSpace(data[fieldName])
+		if fieldValue == "" || fieldValue == "[]" {
+			return fmt.Errorf("%s is required field", field.GetLabel())
+		}
+		if strings.HasPrefix(fieldValue, "[") && strings.HasSuffix(fieldValue, "]") {
+			continue
+		}
+		return fmt.Errorf("%s must be a valid JSON array", field.GetLabel())
+	}
+	return nil
 }
